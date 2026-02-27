@@ -1,0 +1,32 @@
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Virtual environments (macOS/Linux/Windows)
+.venv/
+venv/
+env/
+ENV/
+myenv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and local runtime files
+*.log
+*.pid
