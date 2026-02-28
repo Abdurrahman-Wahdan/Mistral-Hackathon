@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alara Yilmaz - Resume</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .cv-container {
+            width: 210mm; /* Standard A4 width */
+            max-width: 100%;
+            background-color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 50px 60px;
+            box-sizing: border-box;
+            border-top: 8px solid #2b4c7e;
+        }
+
+        header {
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 38px;
+            font-weight: 700;
+            margin: 0;
+            color: #1a1a1a;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px 25px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .contact-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .contact-info a {
+            color: #2b4c7e;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contact-info a:hover {
+            color: #1a365d;
+            text-decoration: underline;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #2b4c7e;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        p {
+            line-height: 1.6;
+            margin: 0 0 15px 0;
+            font-size: 14.5px;
+            color: #4a5568;
+        }
+
+        .job, .project, .education {
+            margin-bottom: 20px;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .title-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .job-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .company {
+            font-size: 15px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .date-location {
+            font-size: 14px;
+            color: #718096;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        li {
+            font-size: 14.5px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+
+        li::marker {
+            color: #a0aec0;
+        }
+
+        .skills-container {
+            display: grid;
+            gap: 10px;
+        }
+
+        .skill-category {
+            font-size: 14.5px;
+            line-height: 1.5;
+            color: #4a5568;
+        }
+
+        .skill-category strong {
+            color: #2d3748;
+            font-weight: 600;
+            display: inline-block;
+            width: 220px; /* Aligns the colons nicely */
+        }
+
+        .project-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1a202c;
+            margin-bottom: 6px;
+        }
+        
+        .project-title span {
+            font-weight: 500;
+            font-style: italic;
+            font-size: 14px;
+            color: #718096;
+            margin-left: 5px;
+        }
+
+        /* Optimization for actual printing if user wants to print/PDF it */
+        @media print {
+            body { background: none; padding: 0; }
+            .cv-container { box-shadow: none; padding: 0; border-top: 4px solid #2b4c7e; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cv-container">
+        <header>
+            <h1>ALARA YILMAZ</h1>
+            <div class="contact-info">
+                <span>📍 Istanbul, Turkey</span>
+                <span>✉️ <a href="mailto:alara.yilmaz.aieng@email.com">alara.yilmaz.aieng@email.com</a></span>
+                <span>💼 <a href="https://linkedin.com/in/alarayilmaz-ai" target="_blank">linkedin.com/in/alarayilmaz-ai</a></span>
+                <span>🐙 <a href="https://github.com/alarayilmaz-dev" target="_blank">github.com/alarayilmaz-dev</a></span>
+            </div>
+        </header>
+
+        <section>
+            <h2>SUMMARY</h2>
+            <p>Software Engineer with 4 years of experience specializing in backend infrastructure and Applied AI. For the past 1.5 years, exclusively focused on building, evaluating, and deploying LLM-based autonomous agents in production environments. Proven track record of leveraging function calling, custom orchestration loops, and RAG architectures to automate complex business workflows. Deeply passionate about moving AI from chat interfaces to execution engines.</p>
+        </section>
+
+        <section>
+            <h2>EXPERIENCE</h2>
+            
+            <div class="job">
+                <div class="job-header">
+                    <div class="title-group">
+                        <span class="job-title">Senior AI Engineer</span>
+                        <span class="company">LojistikZeka A.Ş.</span>
+                    </div>
+                    <div class="date-location">
+                        Oct 2022 – Present<br>
+                        Istanbul, Turkey (Hybrid)
+                    </div>
+                </div>
+                <ul>
+                    <li>Architected and deployed an autonomous supply chain agent that dynamically reroutes shipments based on severe weather alerts and carrier API data, saving the company ₺15M in delay penalties annually.</li>
+                    <li>Migrated a fragile LangChain-based pipeline to a custom, deterministic orchestration engine in Python, improving agent task completion rate from 68% to 94% while reducing latency by 40%.</li>
+                    <li>Built a robust tool-calling infrastructure using heavily typed Pydantic models to guarantee valid JSON outputs from OpenAI (GPT-4) and Anthropic (Claude 3) models, virtually eliminating parsing errors in production.</li>
+                    <li>Implemented a comprehensive LLM observability stack using LangSmith and custom Grafana dashboards to trace multi-step reasoning chains and monitor token usage and API costs.</li>
+                    <li>Designed an automated evaluation pipeline (using a smaller model as a judge) to test system prompt modifications against a golden dataset of 5,000 historical user interactions prior to deployment.</li>
+                </ul>
+            </div>
+
+            <div class="job">
+                <div class="job-header">
+                    <div class="title-group">
+                        <span class="job-title">Backend Software Engineer</span>
+                        <span class="company">FinansAnaliz Teknoloji</span>
+                    </div>
+                    <div class="date-location">
+                        July 2020 – Oct 2022<br>
+                        Istanbul, Turkey
+                    </div>
+                </div>
+                <ul>
+                    <li>Developed highly concurrent microservices in Python (FastAPI) and Go to process real-time financial data streams for institutional client dashboards.</li>
+                    <li>Integrated enterprise vector databases (Pinecone) with legacy PostgreSQL stores to enable hybrid semantic search capabilities across millions of financial regulatory documents (SPK/BDDK regulations).</li>
+                    <li>Reduced average database query latency by 35% through query optimization and implementing a Redis caching layer for frequently accessed materialized views.</li>
+                    <li>Maintained infrastructure as code using Terraform and managed CI/CD pipelines via GitHub Actions deploying to AWS EKS.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>PROJECTS & OPEN SOURCE</h2>
+            
+            <div class="project">
+                <div class="project-title">Auto-Dev-Reviewer <span>(Open Source)</span></div>
+                <ul>
+                    <li>Built an autonomous agent using AutoGen that acts as a secondary code reviewer on GitHub PRs. The agent pulls context, runs basic static analysis (via tools), and leaves line-by-line comments referencing project-specific style guides stored in a Qdrant vector database.</li>
+                    <li>Gained over 800 stars on GitHub and adopted by 15+ tech teams in Turkey.</li>
+                </ul>
+            </div>
+
+            <div class="project">
+                <div class="project-title">Mistral Hackathon Winner <span>(Best Agentic Application)</span></div>
+                <ul>
+                    <li>Led a team of 3 from Bogazici University to build "LegalEagle," a multi-agent system that autonomously negotiated SaaS contracts by drafting redlines and summarizing risks against a user's acceptable risk profile, utilizing Mistral Large and open-weight embedding models.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>SKILLS</h2>
+            <div class="skills-container">
+                <div class="skill-category"><strong>Programming Languages:</strong> Python (Expert), TypeScript / Node.js, Go, SQL</div>
+                <div class="skill-category"><strong>Applied AI & Agents:</strong> OpenAI API, Anthropic API, Mistral API, LangChain, LlamaIndex, AutoGen, CrewAI, Function Calling, Advanced RAG</div>
+                <div class="skill-category"><strong>Backend & Infra:</strong> FastAPI, Docker, Kubernetes, AWS (Lambda, ECS, S3), Redis, PostgreSQL</div>
+                <div class="skill-category"><strong>Vector DBs & Tooling:</strong> Pinecone, Qdrant, Weaviate, LangSmith, DeepEval, Git, Pydantic</div>
+            </div>
+        </section>
+
+        <section>
+            <h2>EDUCATION</h2>
+            <div class="education">
+                <div class="job-header">
+                    <div class="title-group">
+                        <span class="job-title">Bachelor of Science in Computer Engineering</span>
+                        <span class="company">Bogazici University</span>
+                    </div>
+                    <div class="date-location">
+                        Graduated: June 2020<br>
+                        Istanbul, Turkey
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

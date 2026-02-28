@@ -13,7 +13,7 @@ try:
 except ImportError:
     ChatMistralAI = None
 
-from config.settings import settings
+from hackathon.config.settings import settings
 
 logger = logging.getLogger(__name__)
 

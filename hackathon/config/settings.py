@@ -12,8 +12,8 @@ from typing import Optional
 
 # Get the directory where this settings.py file is located
 SETTINGS_DIR = Path(__file__).parent
-# Go up one level to get project root
-PROJECT_ROOT = SETTINGS_DIR.parent
+# Go up two levels to get project root (Mistral-Hackathon)
+PROJECT_ROOT = SETTINGS_DIR.parent.parent
 # Path to .env file
 ENV_FILE = PROJECT_ROOT / ".env"
 
