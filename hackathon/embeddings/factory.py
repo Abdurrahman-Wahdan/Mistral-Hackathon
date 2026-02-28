@@ -2,15 +2,13 @@
 Embedding factory with provider-based architecture.
 
 Providers:
-- openai: OpenAI embeddings (text-embedding-*)
-- google: Google embeddings (models/embedding-*, gemini-embedding-*)
+- mistral: Mistral embeddings (mistral-embed*)
 - local: Local models (qwen3-8b, etc.)
 
 Best Practice - Always specify provider explicitly:
     from embeddings.factory import get_embedding
 
-    emb = get_embedding("text-embedding-3-large", provider="openai")
-    emb = get_embedding("models/gemini-embedding-001", provider="google")
+    emb = get_embedding("mistral-embed", provider="mistral")
     emb = get_embedding("qwen3-8b", provider="local")
 """
 
@@ -34,7 +32,7 @@ def get_embedding(
 
     Args:
         model_id: Embedding model identifier. If None, uses EMBEDDING_MODEL from settings
-        provider: Provider name ("openai", "google", "local"). Recommended to specify.
+        provider: Provider name ("mistral", "local"). Recommended to specify.
         **kwargs: Provider-specific parameters
 
     Returns:
@@ -47,11 +45,9 @@ def get_embedding(
 
     provider_instance = get_provider(model_id, provider_name=provider)
 
-    if settings.EMBEDDING_DIMENSIONS:
-        if provider_instance.provider_name == "google":
-            kwargs.setdefault("output_dimensionality", settings.EMBEDDING_DIMENSIONS)
-        else:
-            kwargs.setdefault("dimensions", settings.EMBEDDING_DIMENSIONS)
+    # Only local provider supports explicit dimension overrides.
+    if settings.EMBEDDING_DIMENSIONS and provider_instance.provider_name == "local":
+        kwargs.setdefault("dimensions", settings.EMBEDDING_DIMENSIONS)
 
     return provider_instance.create(model_id, **kwargs)
 

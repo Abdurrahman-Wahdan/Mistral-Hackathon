@@ -39,7 +39,6 @@ class Settings(BaseSettings):
 
     # ===== Provider API Keys =====
     MISTRAL_API_KEY: str = ""
-    GOOGLE_API_KEY: str = ""
 
     # ===== Default LLM Settings =====
     DEFAULT_MODEL: str = "mistral-large-latest"
@@ -54,10 +53,10 @@ class Settings(BaseSettings):
     QDRANT_PREFER_GRPC: bool = False
 
     # ===== Embedding Configuration =====
-    EMBEDDING_MODEL: str = "models/gemini-embedding-001"
-    EMBEDDING_DIMENSIONS: int = 768
+    EMBEDDING_MODEL: str = "mistral-embed"
+    EMBEDDING_DIMENSIONS: int = 1024
     EMBEDDING_DEVICE: str = "cpu"
-    DEFAULT_EMBEDDING_PROVIDER: str = "google"
+    DEFAULT_EMBEDDING_PROVIDER: str = "mistral"
 
     # ===== Vector Store Configuration =====
     DEFAULT_VECTOR_STORE: str = "qdrant"
@@ -76,7 +75,6 @@ class Settings(BaseSettings):
         """Auto-decrypt values with 'enc:' prefix after Settings is fully loaded."""
         sensitive_fields = [
             'MISTRAL_API_KEY',
-            'GOOGLE_API_KEY',
             'QDRANT_API_KEY',
         ]
 

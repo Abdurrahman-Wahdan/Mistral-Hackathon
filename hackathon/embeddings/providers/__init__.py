@@ -5,22 +5,20 @@ Auto-imports and registers all available embedding providers.
 Providers are checked in order during auto-detection (first match wins).
 
 Best Practice: Always specify provider explicitly to avoid iteration overhead.
-Example: get_embedding("qwen3-8b", provider="local")
+Example: get_embedding("mistral-embed", provider="mistral")
 """
 
 from typing import List, Optional
 from .base import BaseEmbeddingProvider
-from .openai_provider import OpenAIProvider
-from .google_provider import GoogleProvider
+from .mistral_provider import MistralProvider
 from .local_provider import LocalProvider
 
 
 # Provider registry - all available providers
 # Order matters for auto-detection! Specific patterns before generic ones.
 PROVIDERS: List[BaseEmbeddingProvider] = [
-    OpenAIProvider(),    # Matches: text-embedding-*
-    GoogleProvider(),    # Matches: models/embedding-*, gemini-*, gecko-*
-    LocalProvider(),     # Matches: qwen*, bge-*, all-minilm*, etc.
+    MistralProvider(),   # Matches: mistral-*embed* families
+    LocalProvider(),     # Matches: qwen*, qwen3*
 ]
 
 
@@ -30,7 +28,7 @@ def get_provider(model_id: str, provider_name: Optional[str] = None) -> BaseEmbe
 
     Args:
         model_id: The embedding model identifier
-        provider_name: Optional provider name to skip auto-detection ("openai", "google", "local")
+        provider_name: Optional provider name to skip auto-detection ("mistral", "local")
 
     Returns:
         Provider instance that can handle the model
@@ -68,8 +66,7 @@ def get_provider(model_id: str, provider_name: Optional[str] = None) -> BaseEmbe
 
 __all__ = [
     "BaseEmbeddingProvider",
-    "OpenAIProvider",
-    "GoogleProvider",
+    "MistralProvider",
     "LocalProvider",
     "PROVIDERS",
     "get_provider",

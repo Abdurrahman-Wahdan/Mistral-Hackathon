@@ -5,7 +5,7 @@ Usage:
     from vector_stores.factory import get_vector_store
     from embeddings.factory import get_embedding
 
-    emb = get_embedding("models/gemini-embedding-001", provider="google")
+    emb = get_embedding("mistral-embed", provider="mistral")
     db = get_vector_store("qdrant", "my_collection", emb)
 """
 
