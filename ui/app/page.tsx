@@ -8,11 +8,13 @@ import CvUploadSection from '@/components/ui/cv-upload-section';
 import AnalyzingScreen from '@/components/ui/analyzing-screen';
 import VoiceChatScreen from '@/components/ui/voice-chat-screen';
 import InterviewReviewScreen from '@/components/ui/interview-review-screen';
+import { UploadedFile } from '@/components/ui/file-upload-card';
 
 type Screen = "browse" | "analyzing" | "voiceChat" | "interviewReview";
 
 export default function Home() {
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
+  const [cvFiles, setCvFiles] = useState<UploadedFile[]>([]);
   const [screen, setScreen] = useState<Screen>("browse");
   const isNavigatingBackRef = useRef(false);
   const backTimeoutRef = useRef<number | null>(null);
@@ -85,7 +87,6 @@ export default function Home() {
     if (isNavigatingBackRef.current) return;
     const jobsEl = document.getElementById("jobs");
     if (!jobsEl) {
-      setSelectedJob(null);
       return;
     }
 
@@ -103,11 +104,10 @@ export default function Home() {
         window.clearTimeout(backTimeoutRef.current);
         backTimeoutRef.current = null;
       }
-      setSelectedJob(null);
       isNavigatingBackRef.current = false;
     };
 
-    // Force an actual animated scroll, then unmount CV when it finishes.
+    // Force an actual animated scroll and keep selection/upload state persistent.
     animateScrollTo(jobsEl.offsetTop, 620, finalize);
     backTimeoutRef.current = window.setTimeout(finalize, 900);
   };
@@ -127,6 +127,7 @@ export default function Home() {
   const handleCloseVoiceChat = () => {
     setScreen("browse");
     setSelectedJob(null);
+    setCvFiles([]);
     window.scrollTo({ top: 0, behavior: "instant" });
   };
 
@@ -150,6 +151,8 @@ export default function Home() {
           {selectedJob && (
             <CvUploadSection
               jobTitle={selectedJob}
+              files={cvFiles}
+              setFiles={setCvFiles}
               onBack={handleBackToJobs}
               onSubmit={handleSubmit}
             />

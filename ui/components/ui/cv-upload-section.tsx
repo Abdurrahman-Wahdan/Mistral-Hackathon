@@ -1,18 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileUploadCard, UploadedFile } from "@/components/ui/file-upload-card";
 import { Button } from "@/components/ui/button";
 
 interface CvUploadSectionProps {
   jobTitle: string;
+  files: UploadedFile[];
+  setFiles: Dispatch<SetStateAction<UploadedFile[]>>;
   onBack: () => void;
   onSubmit: () => void;
 }
 
-export default function CvUploadSection({ jobTitle, onBack, onSubmit }: CvUploadSectionProps) {
-  const [files, setFiles] = useState<UploadedFile[]>([]);
+export default function CvUploadSection({ jobTitle, files, setFiles, onBack, onSubmit }: CvUploadSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
@@ -50,6 +51,8 @@ export default function CvUploadSection({ jobTitle, onBack, onSubmit }: CvUpload
     }, 200);
 
     return () => clearInterval(interval);
+    // `setFiles` comes from parent `useState` and is stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files]);
 
   const handleFilesChange = (newFiles: File[]) => {

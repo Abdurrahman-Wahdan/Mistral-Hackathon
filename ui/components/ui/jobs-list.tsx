@@ -95,10 +95,6 @@ export default function JobsList({ onApply }: JobsListProps) {
       const visibleHeight = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
       const ratio = visibleHeight / rect.height;
       setIsVisible(ratio > 0.3);
-      if (ratio < 0.3) {
-        setSelectedIndex(null);
-        setExpandedIndex(null);
-      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
