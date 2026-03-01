@@ -33,7 +33,6 @@ Last reviewed: March 2, 2026
 ## Table of Contents
 
 - [Demo](#demo)
-- [Zephlen Channels](#zephlen-channels)
 - [Screenshots (Live App)](#screenshots-live-app)
 - [Key Features](#key-features)
 - [Tech Stack](#tech-stack)
@@ -55,13 +54,7 @@ Last reviewed: March 2, 2026
 
 ## Demo
 
-- YouTube demo: https://youtu.be/47VHrI7td7A?si=Id51xJcEdnSDo4Ml
-
-## Zephlen Channels
-
-- Instagram: https://www.instagram.com/zephlen.ai/
-- YouTube: https://www.youtube.com/@ZephlenAI
-- LinkedIn: https://www.linkedin.com/company/zephlen/
+[![Watch Demo on YouTube](https://img.shields.io/badge/Watch%20Demo%20on%20YouTube-FF0000?logo=youtube&logoColor=white)](https://youtu.be/47VHrI7td7A?si=Id51xJcEdnSDo4Ml)
 
 ## Screenshots (Live App)
 
