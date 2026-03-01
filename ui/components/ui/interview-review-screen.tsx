@@ -1,38 +1,54 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LiquidMetal, liquidMetalPresets } from "@paper-design/shaders-react";
-
-interface InterviewReportFile {
-  id: string;
-  fileName: string;
-  createdAt: string;
-  mimeType: string;
-  content: string;
-}
-
-interface InterviewReviewPayload {
-  summary: string;
-  analysisHighlights: string[];
-  report: InterviewReportFile;
-}
+import ReactMarkdown from "react-markdown";
+import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import type { InterviewReviewPayload } from "@/lib/interview-review-types";
 
 interface InterviewReviewScreenProps {
   jobTitle: string;
   sessionId: string | null;
+  initialReview?: InterviewReviewPayload | null;
   onClose: () => void;
 }
 
 const MIN_LOADING_MS = 2600;
+type MarkdownCodeProps = ComponentPropsWithoutRef<"code"> & { inline?: boolean };
 
-export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: InterviewReviewScreenProps) {
+function normalizeMarkdown(raw: string): string {
+  const source = (raw ?? "").trim();
+  if (!source) return "";
+
+  // If the model wrapped the entire report in a fenced block, unwrap it.
+  const fencedMatch = source.match(/^```[a-zA-Z0-9_-]*\n([\s\S]*?)\n```$/);
+  let normalized = fencedMatch ? fencedMatch[1] : source;
+
+  // Handle occasionally escaped payloads.
+  if (!normalized.includes("\n") && normalized.includes("\\n")) {
+    normalized = normalized.replace(/\\n/g, "\n");
+  }
+  normalized = normalized.replace(/\\"/g, '"');
+
+  return normalized.trim();
+}
+
+export default function InterviewReviewScreen({
+  jobTitle,
+  sessionId,
+  initialReview = null,
+  onClose,
+}: InterviewReviewScreenProps) {
   const [stage, setStage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [review, setReview] = useState<InterviewReviewPayload | null>(null);
+  const [review, setReview] = useState<InterviewReviewPayload | null>(initialReview);
   const [error, setError] = useState<string | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t1 = setTimeout(() => setStage(1), 450);
@@ -47,6 +63,13 @@ export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: 
   }, []);
 
   const loadReview = useCallback(async (signal?: AbortSignal) => {
+    if (initialReview) {
+      setReview(initialReview);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -78,7 +101,7 @@ export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: 
       if (signal?.aborted) return;
       setIsLoading(false);
     }
-  }, [jobTitle, sessionId]);
+  }, [initialReview, jobTitle, sessionId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -98,6 +121,14 @@ export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: 
     }).format(date);
   }, [review]);
 
+  const parsedReportContent = useMemo(() => {
+    return normalizeMarkdown(review?.report.content ?? "");
+  }, [review?.report.content]);
+  const parsedSummary = useMemo(() => normalizeMarkdown(review?.summary ?? ""), [review?.summary]);
+  const hasStrengths = (review?.strengths?.length ?? 0) > 0;
+  const hasWeaknesses = (review?.weaknesses?.length ?? 0) > 0;
+  const showTwoSignalCards = hasStrengths && hasWeaknesses;
+
   const scoreCards = useMemo(() => {
     if (!review) return [];
     const signalStrength = Math.min(92, 72 + review.analysisHighlights.length * 4);
@@ -111,35 +142,66 @@ export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: 
     ];
   }, [review]);
 
-  const downloadReport = () => {
-    if (!review) return;
+  const scoreLabel = useMemo(() => {
+    if (!review) return "Pending";
+    if (review.overallScore >= 85) return "Excellent";
+    if (review.overallScore >= 70) return "Strong";
+    if (review.overallScore >= 55) return "Mixed";
+    return "Needs Work";
+  }, [review]);
 
-    const blob = new Blob([review.report.content], { type: review.report.mimeType || "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = review.report.fileName;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
+  const phaseTrend = useMemo(() => {
+    if (!review || !review.phases || review.phases.length < 2) return "";
+    const first = review.phases[0]?.score ?? 0;
+    const last = review.phases[review.phases.length - 1]?.score ?? 0;
+    const delta = last - first;
+    if (delta > 8) return `Strong recovery: +${delta} points from opening to closing.`;
+    if (delta < -8) return `Performance dipped by ${Math.abs(delta)} points from opening to closing.`;
+    return "Performance stayed relatively stable across interview phases.";
+  }, [review]);
+
+  const downloadPdf = async () => {
+    if (!review || !pdfRef.current) return;
+    setIsGeneratingPdf(true);
+
+    // Dynamically import html2pdf to avoid SSR issues
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const element = pdfRef.current;
+      const opt = {
+        margin: 10,
+        filename: `${review.report.fileName.replace('.md', '')}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (e) {
+      console.error("Failed to generate PDF", e);
+      setError("Failed to generate PDF from report preview. Please retry.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const heroBackground = (
-    <LiquidMetal
-      {...liquidMetalPresets[1]}
-      colorBack="#000000"
-      colorTint="#4a4a4a"
-      shape="circle"
-      scale={2.5}
-      softness={0.7}
-      contour={0.6}
-      distortion={0.4}
-      shiftRed={-0.15}
-      shiftBlue={0.25}
-      speed={0.7}
-      style={{ position: "absolute", inset: 0, zIndex: -10 }}
-    />
+    <div className="fixed inset-0 z-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.14),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(255,255,255,0.08),transparent_42%),#000]">
+      <LiquidMetal
+        {...liquidMetalPresets[1]}
+        colorBack="#000000"
+        colorTint="#4a4a4a"
+        shape="circle"
+        scale={2.5}
+        softness={0.7}
+        contour={0.6}
+        distortion={0.4}
+        shiftRed={-0.15}
+        shiftBlue={0.25}
+        speed={0.7}
+        style={{ position: "absolute", inset: 0, width: "100vw", height: "100vh" }}
+      />
+    </div>
   );
 
   if (isLoading) {
@@ -226,9 +288,9 @@ export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: 
   }
 
   return (
-    <section className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden">
+    <section className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black">
       {heroBackground}
-      <div className="pointer-events-none absolute inset-0 z-0 bg-black/55" />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-black/55" />
 
       <div className="relative z-10 min-h-full px-6 py-10 sm:py-14 flex items-center justify-center">
         <motion.div
@@ -252,34 +314,142 @@ export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: 
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 p-6 sm:p-8">
             <div className="lg:col-span-7 space-y-5">
-              <div className="rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6">
-                <p className="mb-2 text-xs uppercase tracking-[0.16em] text-foreground/40">Summary</p>
-                <p className="text-foreground/80 leading-relaxed text-base sm:text-lg">{review.summary}</p>
+              <div className="flex flex-col sm:flex-row gap-5">
+                <div className="flex-1 rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6 flex flex-col justify-center items-center">
+                  <p className="text-xs uppercase tracking-[0.16em] text-foreground/40 mb-3">Overall Performance</p>
+                  <div className="relative flex items-center justify-center w-32 h-32 rounded-full border-[6px] border-white/10">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90">
+                      <circle
+                        cx="50%"
+                        cy="50%"
+                        r="46%"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        className="text-white"
+                        strokeDasharray="289"
+                        strokeDashoffset={289 - (289 * (review.overallScore || 0)) / 100}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <span className="text-4xl font-bold">{review.overallScore || 0}%</span>
+                  </div>
+                  <div className="mt-3 rounded-full border border-white/20 px-3 py-1 text-xs uppercase tracking-[0.12em] text-foreground/80">
+                    {scoreLabel}
+                  </div>
+                </div>
+
+                <div className="flex-[2] rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6">
+                  <p className="mb-2 text-xs uppercase tracking-[0.16em] text-foreground/40">Summary</p>
+                  <div className="text-foreground/80 leading-relaxed text-sm sm:text-base">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ ...props }) => <p className="mb-3 last:mb-0" {...props} />,
+                        strong: ({ ...props }) => <strong className="font-semibold text-foreground" {...props} />,
+                        em: ({ ...props }) => <em className="italic text-foreground/90" {...props} />,
+                      }}
+                    >
+                      {parsedSummary}
+                    </ReactMarkdown>
+                  </div>
+                </div>
               </div>
 
-              <div className="rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6">
-                <p className="mb-4 text-xs uppercase tracking-[0.16em] text-foreground/40">Key interview insights</p>
-                <div className="space-y-3">
-                  {review.analysisHighlights.map((highlight) => (
-                    <div
-                      key={highlight}
-                      className="rounded-xl border border-white/10 bg-black/45 px-4 py-3 text-foreground/80"
-                    >
-                      {highlight}
-                    </div>
-                  ))}
+              {review.phases && review.phases.length > 0 && (
+                <div className="rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6">
+                  <p className="mb-4 text-xs uppercase tracking-[0.16em] text-foreground/40">Performance Timeline</p>
+                  <div className="h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={review.phases}>
+                        <XAxis dataKey="name" stroke="#ffffff60" fontSize={11} tickMargin={8} />
+                        <YAxis stroke="#ffffff60" fontSize={11} domain={[0, 100]} hide />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: '#000000f0', border: '1px solid #ffffff20', borderRadius: '8px' }}
+                          itemStyle={{ color: '#ffffff' }}
+                        />
+                        <Line type="monotone" dataKey="score" stroke="#ffffff" strokeWidth={3} dot={{ r: 4, fill: '#fff' }} activeDot={{ r: 6 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {phaseTrend ? <p className="mt-3 text-xs text-foreground/60">{phaseTrend}</p> : null}
                 </div>
+              )}
+
+              {review.analysisHighlights && review.analysisHighlights.length > 0 && (
+                <div className="rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6">
+                  <p className="mb-4 text-xs uppercase tracking-[0.16em] text-foreground/40">Session Highlights</p>
+                  <ul className="space-y-2">
+                    {review.analysisHighlights.slice(0, 5).map((item, idx) => (
+                      <li key={idx} className="text-sm text-foreground/80 leading-relaxed">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                            strong: ({ ...props }) => <strong className="font-semibold text-foreground" {...props} />,
+                            em: ({ ...props }) => <em className="italic text-foreground/90" {...props} />,
+                            ul: ({ ...props }) => <ul className="list-disc pl-5 space-y-1" {...props} />,
+                            li: ({ ...props }) => <li className="mb-1" {...props} />,
+                          }}
+                        >
+                          {normalizeMarkdown(item)}
+                        </ReactMarkdown>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className={`grid grid-cols-1 ${showTwoSignalCards ? "sm:grid-cols-2" : "sm:grid-cols-1"} gap-5`}>
+                {review.strengths && review.strengths.length > 0 && (
+                  <div className="rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6">
+                    <p className="mb-4 text-xs uppercase tracking-[0.16em] text-foreground/40">Key Strengths</p>
+                    <ul className="space-y-3">
+                      {review.strengths.map((str, idx) => (
+                        <li key={idx} className="flex gap-3 text-sm text-foreground/80">
+                          <span className="text-green-400 mt-0.5">✓</span> <span>{str}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {review.weaknesses && review.weaknesses.length > 0 && (
+                  <div className="rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6">
+                    <p className="mb-4 text-xs uppercase tracking-[0.16em] text-foreground/40">Areas for Improvement</p>
+                    <ul className="space-y-3">
+                      {review.weaknesses.map((weak, idx) => (
+                        <li key={idx} className="flex gap-3 text-sm text-foreground/80">
+                          <span className="text-red-400 mt-0.5">✕</span> <span>{weak}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="lg:col-span-5 space-y-5">
-              <div className="grid grid-cols-3 gap-3">
-                {scoreCards.map((score) => (
-                  <div key={score.label} className="rounded-xl border border-white/12 bg-black/55 p-3 text-center">
-                    <p className="text-[11px] uppercase tracking-[0.14em] text-foreground/45">{score.label}</p>
-                    <p className="mt-2 text-xl font-semibold text-foreground">{score.value}</p>
-                  </div>
-                ))}
+              <div className="flex flex-col gap-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-foreground/40 mb-1">Detailed Metrics</p>
+                {review.detailedMetrics && review.detailedMetrics.length > 0 ? (
+                  review.detailedMetrics.map((metric) => (
+                    <div key={metric.label} className="rounded-xl border border-white/12 bg-black/55 p-4 flex flex-col justify-between">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-foreground">{metric.label}</span>
+                        <span className="text-sm font-bold text-foreground">{metric.score}/100</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-white/10 rounded-full mb-3 overflow-hidden">
+                        <div className="h-full bg-white/80 rounded-full" style={{ width: `${metric.score}%` }} />
+                      </div>
+                      <p className="text-xs text-foreground/60">{metric.feedback}</p>
+                    </div>
+                  ))
+                ) : (
+                  scoreCards.map((score) => (
+                    <div key={score.label} className="rounded-xl border border-white/12 bg-black/55 p-3 text-center">
+                      <p className="text-[11px] uppercase tracking-[0.14em] text-foreground/45">{score.label}</p>
+                      <p className="mt-2 text-xl font-semibold text-foreground">{score.value}</p>
+                    </div>
+                  ))
+                )}
               </div>
 
               <button
@@ -349,8 +519,37 @@ export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: 
                 </button>
               </div>
 
-              <div className="max-h-[58vh] overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
-                <pre className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap font-mono">{review.report.content}</pre>
+              <div className="max-h-[58vh] overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 bg-white text-black" ref={pdfRef}>
+                <div className="max-w-none text-[15px] leading-7">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({ ...props }) => <h1 className="mt-2 mb-5 text-3xl font-semibold tracking-tight text-black" {...props} />,
+                      h2: ({ ...props }) => <h2 className="mt-8 mb-4 text-2xl font-semibold text-black" {...props} />,
+                      h3: ({ ...props }) => <h3 className="mt-6 mb-3 text-xl font-semibold text-black" {...props} />,
+                      p: ({ ...props }) => <p className="mb-4 text-black/90" {...props} />,
+                      ul: ({ ...props }) => <ul className="mb-4 list-disc pl-6 text-black/90" {...props} />,
+                      ol: ({ ...props }) => <ol className="mb-4 list-decimal pl-6 text-black/90" {...props} />,
+                      li: ({ ...props }) => <li className="mb-1" {...props} />,
+                      hr: ({ ...props }) => <hr className="my-6 border-black/15" {...props} />,
+                      strong: ({ ...props }) => <strong className="font-semibold text-black" {...props} />,
+                      blockquote: ({ ...props }) => (
+                        <blockquote className="my-4 border-l-4 border-black/20 bg-black/[0.03] px-4 py-2 italic text-black/80" {...props} />
+                      ),
+                      code: ({ inline, className, children, ...props }: MarkdownCodeProps) =>
+                        inline ? (
+                          <code className="rounded bg-black/10 px-1.5 py-0.5 font-mono text-[0.92em]" {...props}>
+                            {children}
+                          </code>
+                        ) : (
+                          <code className={`block overflow-x-auto rounded-lg bg-black text-white p-4 font-mono text-sm ${className ?? ""}`} {...props}>
+                            {children}
+                          </code>
+                        ),
+                    }}
+                  >
+                    {parsedReportContent}
+                  </ReactMarkdown>
+                </div>
               </div>
 
               <div className="border-t border-white/10 bg-white/[0.02] px-5 py-4 sm:px-6 flex items-center justify-end gap-3">
@@ -361,8 +560,8 @@ export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: 
                 >
                   Close
                 </Button>
-                <Button className="bg-white text-black hover:bg-white/90" onClick={downloadReport}>
-                  Download Report
+                <Button className="bg-white text-black hover:bg-white/90" onClick={downloadPdf} disabled={isGeneratingPdf}>
+                  {isGeneratingPdf ? "Generating PDF..." : "Download PDF"}
                 </Button>
               </div>
             </motion.div>

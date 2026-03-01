@@ -68,7 +68,7 @@ export default function LiquidMetalHero({
         shiftRed={-0.15}
         shiftBlue={0.25}
         speed={0.7}
-        style={{ position: "absolute", inset: 0, zIndex: -10 }}
+        style={{ position: "absolute", inset: 0, width: "100vw", height: "100vh", zIndex: -10 }}
       />
 
       <div className="container mx-auto px-6 lg:px-8 max-w-7xl">

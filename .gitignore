@@ -19,6 +19,21 @@ myenv/
 __pycache__/
 *.py[cod]
 *.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python packaging/build artifacts
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+
+# JS/Next.js build/cache artifacts at repo root
+.next/
+node_modules/
+coverage/
 
 # IDE/editor files
 .vscode/
@@ -30,3 +45,6 @@ __pycache__/
 # Logs and local runtime files
 *.log
 *.pid
+
+# Generated interview/runtime outputs
+outputs/

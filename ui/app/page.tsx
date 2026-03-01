@@ -6,11 +6,13 @@ import LiquidMetalHero from '@/components/ui/liquid-metal-hero';
 import JobsList from '@/components/ui/jobs-list';
 import CvUploadSection from '@/components/ui/cv-upload-section';
 import AnalyzingScreen from '@/components/ui/analyzing-screen';
+import GeneratingReportScreen from '@/components/ui/generating-report-screen';
 import VoiceChatScreen from '@/components/ui/voice-chat-screen';
 import InterviewReviewScreen from '@/components/ui/interview-review-screen';
 import { UploadedFile } from '@/components/ui/file-upload-card';
+import type { InterviewReviewPayload } from '@/lib/interview-review-types';
 
-type Screen = "browse" | "analyzing" | "voiceChat" | "interviewReview";
+type Screen = "browse" | "analyzing" | "voiceChat" | "generatingReport" | "interviewReview";
 
 export default function Home() {
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
@@ -20,6 +22,7 @@ export default function Home() {
   const [preparedSessionId, setPreparedSessionId] = useState<string | null>(null);
   const [isApiReady, setIsApiReady] = useState(false);
   const [prepareError, setPrepareError] = useState<string | null>(null);
+  const [reviewPayload, setReviewPayload] = useState<InterviewReviewPayload | null>(null);
   const isNavigatingBackRef = useRef(false);
   const backTimeoutRef = useRef<number | null>(null);
   const scrollRafRef = useRef<number | null>(null);
@@ -126,6 +129,7 @@ export default function Home() {
     setPreparedSessionId(null);
     setIsApiReady(false);
     setInterviewSessionId(null);
+    setReviewPayload(null);
     setPrepareError(null);
     setScreen("analyzing");
 
@@ -182,7 +186,20 @@ export default function Home() {
 
   const handleVoiceInterviewComplete = (sessionId: string | null) => {
     setInterviewSessionId(sessionId);
+    if (!sessionId) {
+      setScreen("browse");
+      return;
+    }
+    setScreen("generatingReport");
+  };
+
+  const handleReportGenerated = (payload: InterviewReviewPayload) => {
+    setReviewPayload(payload);
     setScreen("interviewReview");
+  };
+
+  const handleReportErrorRetry = () => {
+    // Retry means we just stay on the screen since we passed onRetry inside GeneratingReportScreen
   };
 
   const handleCloseVoiceChat = () => {
@@ -191,6 +208,7 @@ export default function Home() {
     setPreparedSessionId(null);
     setIsApiReady(false);
     setPrepareError(null);
+    setReviewPayload(null);
     setSelectedJob(null);
     setCvFiles([]);
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -255,6 +273,16 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {screen === "generatingReport" && selectedJob && interviewSessionId && (
+        <GeneratingReportScreen
+          jobTitle={selectedJob}
+          sessionId={interviewSessionId}
+          onReady={handleReportGenerated}
+          onBack={handleCloseVoiceChat}
+          onRetry={handleReportErrorRetry}
+        />
+      )}
+
       <AnimatePresence>
         {screen === "interviewReview" && selectedJob && (
           <motion.div
@@ -267,6 +295,7 @@ export default function Home() {
             <InterviewReviewScreen
               jobTitle={selectedJob}
               sessionId={interviewSessionId}
+              initialReview={reviewPayload}
               onClose={handleCloseVoiceChat}
             />
           </motion.div>

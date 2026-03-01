@@ -4,6 +4,11 @@ import { fetchInterviewAgent, getInterviewAgentBaseUrl, parseJsonSafe } from "@/
 interface InterviewReviewPayload {
   summary: string;
   analysisHighlights: string[];
+  overallScore: number;
+  strengths: string[];
+  weaknesses: string[];
+  phases: { name: string; score: number }[];
+  detailedMetrics: { label: string; score: number; feedback: string }[];
   report: {
     id: string;
     fileName: string;
@@ -18,6 +23,11 @@ function isValidReviewPayload(payload: unknown): payload is InterviewReviewPaylo
   const parsed = payload as Partial<InterviewReviewPayload>;
   if (typeof parsed.summary !== "string") return false;
   if (!Array.isArray(parsed.analysisHighlights)) return false;
+  if (typeof parsed.overallScore !== "number") return false;
+  if (!Array.isArray(parsed.strengths)) return false;
+  if (!Array.isArray(parsed.weaknesses)) return false;
+  if (!Array.isArray(parsed.phases)) return false;
+  if (!Array.isArray(parsed.detailedMetrics)) return false;
   if (!parsed.report || typeof parsed.report !== "object") return false;
   const report = parsed.report as Partial<InterviewReviewPayload["report"]>;
   return (

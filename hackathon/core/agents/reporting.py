@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, Field
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from hackathon.config.settings import settings
@@ -120,6 +121,7 @@ async def generate_reports_for_interview(
     logs_dir: Path,
     context_dir: Path | None = None,
     output_dir: Path | None = None,
+    messages: list | None = None,
 ) -> dict:
     """Generate category and final interview reports for a given logs directory."""
     context_dir = context_dir or logs_dir
@@ -127,6 +129,38 @@ async def generate_reports_for_interview(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     log_files = sorted(logs_dir.glob("*_logs.json"))
+
+    if not log_files and messages and len(messages) > 2:
+        import json as _json
+        conversation = []
+        for m in messages[2:]:
+            m_type = getattr(m, "type", "")
+            if m_type == "human":
+                conversation.append({"role": "candidate", "message": str(getattr(m, "content", ""))})
+            elif m_type == "ai":
+                content = str(getattr(m, "content", ""))
+                if "message_to_candidate" in content:
+                    try:
+                        parsed = _json.loads(content)
+                        content = parsed.get("message_to_candidate", content)
+                    except Exception:
+                        # naive regex extraction if JSON fails
+                        import re
+                        match = re.search(r'"message_to_candidate"\s*:\s*"(.*?)"', content, flags=re.IGNORECASE | re.DOTALL)
+                        if match:
+                            content = match.group(1).replace('\\"', '"').replace("\\n", "\n")
+                if content and not list(getattr(m, "tool_calls", [])):
+                    conversation.append({"role": "interviewer", "message": content})
+                    
+        if conversation:
+            fallback_path = logs_dir / "early_termination_logs.json"
+            mock_json = [{
+                "question": "Early termination evaluation based on partial transcript",
+                "conversation": conversation
+            }]
+            fallback_path.write_text(_json.dumps(mock_json, ensure_ascii=False), encoding="utf-8")
+            log_files = [fallback_path]
+
     if not log_files:
         summary = {
             "total_categories": 0,
@@ -195,3 +229,78 @@ async def generate_reports_for_interview(
         encoding="utf-8",
     )
     return summary
+
+
+class PhaseScore(BaseModel):
+    phase_name: str = Field(description="Name of the interview phase, e.g., 'First 5 minutes', 'Technical Deep Dive', 'Closing'")
+    score: int = Field(description="Performance score for this phase (0 to 100)")
+
+
+class Metric(BaseModel):
+    label: str = Field(description="Name of the metric, e.g., 'Technical Depth', 'Communication', 'Problem Solving'")
+    score: int = Field(description="Score out of 100")
+    feedback: str = Field(description="Short sentence explaining the score")
+
+
+class StructuredReview(BaseModel):
+    overall_score: int = Field(description="Overall percentage score out of 100")
+    summary: str = Field(description="A crisp, concise 2-3 sentence summary of the candidate's performance.")
+    strengths: list[str] = Field(description="List of 3 to 5 key strengths.")
+    weaknesses: list[str] = Field(description="List of 3 to 5 areas of concern or weaknesses.")
+    phases: list[PhaseScore] = Field(description="Timeline phases of the interview with a performance score for each to build a chart. Roughly 3 to 5 phases.")
+    detailed_metrics: list[Metric] = Field(description="3 to 5 detailed metrics representing different areas evaluated during the interview.")
+
+
+async def generate_structured_review_from_report(final_report_content: str, transcript_content: str = "") -> dict:
+    """Takes a raw markdown final report and transcript to extract structured data."""
+    if not final_report_content.strip():
+        # Fallback empty structure
+        return {
+            "overallScore": 0,
+            "summary": "No report content available to analyze.",
+            "strengths": [],
+            "weaknesses": [],
+            "phases": [],
+            "detailed_metrics": [],
+        }
+
+    llm = get_llm(
+        model_id=settings.HR_ANALYSIS_MODEL,
+        temperature=0.1,  # Low temperature for strict structured extraction
+    )
+
+    system_prompt = (
+        "You are an expert HR Data Extraction specialist. Given an interview markdown report "
+        "AND the raw dialogue transcript, extract the candidate's performance into structured fields. "
+        "Be completely objective and accurate. Evaluate their specific actions and dialogue from the log "
+        "to generate robust 'phases' scores (how they did over time) and 'detailed_metrics' (specific skills). "
+        "Do NOT hallucinate details not present in the text."
+    )
+    
+    messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=f"Report Content:\n\n{final_report_content}\n\nTranscript:\n\n{transcript_content}"),
+    ]
+
+    extractor = llm.with_structured_output(StructuredReview)
+    try:
+        result = await extractor.ainvoke(messages)
+        # Convert to a dict matching our frontend expectations
+        return {
+            "overallScore": result.overall_score,
+            "summary": result.summary,
+            "strengths": result.strengths,
+            "weaknesses": result.weaknesses,
+            "phases": [{"name": p.phase_name, "score": p.score} for p in result.phases],
+            "detailed_metrics": [{"label": m.label, "score": m.score, "feedback": m.feedback} for m in result.detailed_metrics],
+        }
+    except Exception as e:
+        print(f"Failed to extract structured data: {e}")
+        return {
+            "overallScore": 0,
+            "summary": "Failed to parse structured review.",
+            "strengths": [],
+            "weaknesses": [],
+            "phases": [],
+            "detailed_metrics": [],
+        }

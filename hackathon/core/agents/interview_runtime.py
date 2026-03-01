@@ -10,7 +10,7 @@ from uuid import uuid4
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
 from hackathon.config.settings import settings
-from hackathon.core.agents.reporting import generate_reports_for_interview
+from hackathon.core.agents.reporting import generate_reports_for_interview, generate_structured_review_from_report
 from hackathon.core.prompts.prompts import (
     CONDUCT_INTERVIEW_KICKOFF_PROMPT,
     CONDUCT_INTERVIEW_SYSTEM_PROMPT,
@@ -83,16 +83,6 @@ def _extract_json_like_fields(content: str) -> tuple[str, bool] | None:
     msg = msg.replace('\\"', '"').replace("\\n", "\n").strip()
     end_interview = match.group("end").lower() == "true"
     return msg, end_interview
-
-
-def _continuation_message(unique_logged: int) -> str:
-    remaining = max(0, 3 - unique_logged)
-    if remaining <= 1:
-        return "Thanks for sharing. Before we conclude, I would like to ask one more behavioral question."
-    return (
-        "Thanks for sharing. Before we conclude, I would like to cover "
-        f"{remaining} more behavioral areas."
-    )
 
 
 def _is_question_source_file(path: Path) -> bool:
@@ -221,7 +211,6 @@ class InterviewSessionManager:
 
         assistant_message, end_interview = await self._generate_assistant_turn(state)
         if end_interview:
-            # Keep state sane; the runtime already enforces 3 logged questions before ending.
             state.ended = True
         return state, assistant_message
 
@@ -277,6 +266,7 @@ class InterviewSessionManager:
                 logs_dir=state.outputs_dir,
                 context_dir=project_root / "outputs",
                 output_dir=reports_dir,
+                messages=state.messages,
             )
             state.updated_at = _utc_now_iso()
             return {
@@ -343,13 +333,50 @@ class InterviewSessionManager:
         file_name = f"{slug or 'interview'}-review-report.md"
         if final_report_path.exists():
             file_name = final_report_path.name
+            
+        transcript = ""
+        for m in state.messages[2:]:
+            m_type = getattr(m, "type", "")
+            if m_type == "human":
+                content = str(getattr(m, "content", ""))
+                transcript += f"CANDIDATE: {content}\n\n"
+            elif m_type == "ai":
+                content = str(getattr(m, "content", ""))
+                if "message_to_candidate" in content:
+                    try:
+                        parsed = json.loads(content)
+                        content = parsed.get("message_to_candidate", content)
+                    except Exception:
+                        import re
+                        match = re.search(r'"message_to_candidate"\s*:\s*"(.*?)"', content, flags=re.IGNORECASE | re.DOTALL)
+                        if match:
+                            content = match.group(1).replace('\\"', '"').replace("\\n", "\n")
+                if content and not list(getattr(m, "tool_calls", [])):
+                    transcript += f"INTERVIEWER: {content}\n\n"
+
+        structured_info_path = reports_dir / "structured_review.json"
+        
+        if structured_info_path.exists():
+            try:
+                structured_data = json.loads(structured_info_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                structured_data = await generate_structured_review_from_report(report_content, transcript)
+                structured_info_path.write_text(json.dumps(structured_data, ensure_ascii=False, indent=2), encoding="utf-8")
+        else:
+            structured_data = await generate_structured_review_from_report(report_content, transcript)
+            structured_info_path.write_text(json.dumps(structured_data, ensure_ascii=False, indent=2), encoding="utf-8")
 
         return {
-            "summary": summary_text,
+            "summary": structured_data.get("summary", summary_text),
             "analysisHighlights": highlights or [
                 "Detailed report was generated.",
                 "No bullet highlights were extracted automatically.",
             ],
+            "overallScore": structured_data.get("overallScore", 0),
+            "strengths": structured_data.get("strengths", []),
+            "weaknesses": structured_data.get("weaknesses", []),
+            "phases": structured_data.get("phases", []),
+            "detailedMetrics": structured_data.get("detailed_metrics", []),
             "report": {
                 "id": f"report-{session_id}",
                 "fileName": file_name,
@@ -419,21 +446,7 @@ class InterviewSessionManager:
                 )))
 
             if end_interview:
-                progress = get_logged_question_progress(state.outputs_dir)
-                if progress["unique_logged"] < 3:
-                    end_interview = False
-                    assistant_message = _continuation_message(progress["unique_logged"])
-                    state.messages.append(AIMessage(content=json.dumps({
-                        "message_to_candidate": assistant_message,
-                        "end_interview": False,
-                    })))
-                    state.messages.append(SystemMessage(content=(
-                        "Internal rule reminder: attempted to conclude early. "
-                        f"Unique logged questions are {progress['unique_logged']}/3. "
-                        "Continue and ask a new behavioral question."
-                    )))
-                else:
-                    state.messages.append(response)
+                state.messages.append(response)
             else:
                 state.messages.append(response)
 

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Talking Head</title>
+    <style>
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: transparent;
+        }
+        #avatar {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #loading {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+        }
+    </style>
+
+    <script type="importmap">
+    { "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js/+esm",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+        "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.7/modules/talkinghead.mjs"
+    }}
+    </script>
+
+    <script type="module">
+        import { TalkingHead } from "talkinghead";
+
+        let head;
+        let isReady = false;
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            const nodeAvatar = document.getElementById('avatar');
+            const nodeLoading = document.getElementById('loading');
+            
+            head = new TalkingHead(nodeAvatar, {
+                lipsyncModules: ["en", "fi"],
+                cameraView: "upper"
+            });
+
+            try {
+                nodeLoading.textContent = "Loading avatar...";
+                await head.showAvatar({
+                    url: 'https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb?morphTargets=ARKit,Oculus+Visemes,mouthOpen,mouthSmile,eyesClosed,eyesLookUp,eyesLookDown&textureSizeLimit=1024&textureFormat=png',
+                    body: 'F',
+                    avatarMood: 'neutral'
+                }, (ev) => {
+                    if (ev.lengthComputable) {
+                        let val = Math.round(ev.loaded / ev.total * 100);
+                        nodeLoading.textContent = `Loading ${val}%`;
+                    }
+                });
+                nodeLoading.style.display = 'none';
+                isReady = true;
+                
+                // Signal parent that we are ready
+                window.parent.postMessage({ type: 'avatar_ready' }, '*');
+                
+            } catch (error) {
+                console.error("Avatar error:", error);
+                nodeLoading.textContent = "Failed to load avatar";
+            }
+        });
+
+        // Listen for messages from the React app
+        window.addEventListener('message', async (event) => {
+            if (!isReady || !head) return;
+            
+            const msg = event.data;
+            if (msg.type === 'speak') {
+                try {
+                    const audioContext = head.audioCtx;
+                    if (audioContext && audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
+                    
+                    const durationMs = msg.durationMs || 3000; // default 3s if not provided
+                    
+                    // Generate random visemes over duration
+                    const visemes = [];
+                    const vtimes = [];
+                    const vdurations = [];
+                    const words = [""];
+                    const wtimes = [0];
+                    const wdurations = [durationMs];
+
+                    const oculusVisemes = ['aa', 'E', 'I', 'O', 'U', 'PP', 'SS', 'TH', 'CH', 'FF', 'kk', 'nn', 'RR', 'DD'];
+
+                    let currentTime = 0;
+                    while (currentTime < durationMs) {
+                        if (Math.random() < 0.25) {
+                            visemes.push('sil');
+                            vtimes.push(currentTime);
+                            const pauseDur = Math.random() * 300 + 200;
+                            vdurations.push(pauseDur);
+                            currentTime += pauseDur;
+                        } else {
+                            visemes.push(oculusVisemes[Math.floor(Math.random() * oculusVisemes.length)]);
+                            vtimes.push(currentTime);
+                            const dur = Math.random() * 80 + 120;
+                            vdurations.push(dur);
+                            currentTime += dur;
+                        }
+                    }
+                    // End with silence
+                    visemes.push('sil');
+                    vtimes.push(currentTime);
+                    vdurations.push(100);
+
+                    // Create a dummy audio buffer since the parent is playing the real audio
+                    const emptyBuffer = audioContext.createBuffer(1, Math.max(1, audioContext.sampleRate * Math.ceil(durationMs / 1000)), audioContext.sampleRate);
+                    
+                    await head.speakAudio({
+                        audio: emptyBuffer,
+                        words: words,
+                        wtimes: wtimes,
+                        wdurations: wdurations,
+                        visemes: visemes,
+                        vtimes: vtimes,
+                        vdurations: vdurations
+                    });
+                } catch (err) {
+                    console.error("speakAudio error:", err);
+                }
+            } else if (msg.type === 'stop') {
+                if (head) {
+                    // Try to stop current animation if API provides a way, else we can stop updating
+                    // Note: TalkingHead might not have a public 'stopSpeech' method directly without audio, 
+                    // but we can start a new empty speech or just let it finish.
+                }
+            } else if (msg.type === 'visibility') {
+                if (msg.visible) {
+                    head.start();
+                } else {
+                    head.stop();
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <div id="avatar"></div>
+    <div id="loading"></div>
+</body>
+</html>

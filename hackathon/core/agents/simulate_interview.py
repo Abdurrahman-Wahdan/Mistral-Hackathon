@@ -30,7 +30,6 @@ from hackathon.core.tools.interviewer_tools import (
     INTERVIEWER_TOOLS,
     set_session_outputs_dir,
     reset_session_outputs_dir,
-    get_logged_question_progress,
 )
 
 
@@ -210,16 +209,6 @@ def _append_monitor_entry(simulations_dir: Path, entry: dict) -> None:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
-def _continuation_message(unique_logged: int) -> str:
-    remaining = max(0, 3 - unique_logged)
-    if remaining <= 1:
-        return "Thanks for sharing. Before we conclude, I would like to ask one more behavioral question."
-    return (
-        "Thanks for sharing. Before we conclude, I would like to cover "
-        f"{remaining} more behavioral areas."
-    )
-
-
 async def run_single_scenario(
     scenario_name: str,
     scenario_instruction: str,
@@ -341,21 +330,7 @@ async def run_single_scenario(
                 )))
 
             if end_interview:
-                progress = get_logged_question_progress(session_outputs_dir)
-                if progress["unique_logged"] < 3:
-                    end_interview = False
-                    agent_msg = _continuation_message(progress["unique_logged"])
-                    interviewer_messages.append(AIMessage(content=json.dumps({
-                        "message_to_candidate": agent_msg,
-                        "end_interview": False,
-                    })))
-                    interviewer_messages.append(SystemMessage(content=(
-                        "Internal rule reminder: You attempted to conclude early. "
-                        f"Unique logged questions are {progress['unique_logged']}/3. "
-                        "Continue and ask a new behavioral question."
-                    )))
-                else:
-                    interviewer_messages.append(response)
+                interviewer_messages.append(response)
             else:
                 interviewer_messages.append(response)
 
@@ -398,8 +373,8 @@ async def run_single_scenario(
 
     if not ended_normally:
         quality_gate_failures.append("interview_not_concluded_normally")
-    if history_metrics["unique_questions"] < 3:
-        quality_gate_failures.append("fewer_than_3_unique_logged_questions")
+    if history_metrics["unique_questions"] < 1:
+        quality_gate_failures.append("no_logged_questions")
 
     end_time = datetime.now(timezone.utc)
     if error_message:

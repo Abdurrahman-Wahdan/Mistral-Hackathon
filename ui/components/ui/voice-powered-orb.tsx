@@ -38,7 +38,9 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
   // Store the latest externalVoiceLevel in a ref so the render loop can read
   // it without re-creating the effect.
   const externalVoiceLevelRef = useRef(externalVoiceLevel ?? 0);
-  externalVoiceLevelRef.current = externalVoiceLevel ?? 0;
+  useEffect(() => {
+    externalVoiceLevelRef.current = externalVoiceLevel ?? 0;
+  }, [externalVoiceLevel]);
 
   const vert = /* glsl */ `
     precision highp float;
@@ -272,6 +274,7 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
       // Store the stream reference for cleanup
       mediaStreamRef.current = stream;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
 
       // Resume audio context if needed

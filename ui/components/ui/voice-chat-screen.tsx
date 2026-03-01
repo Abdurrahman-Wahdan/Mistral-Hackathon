@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { VoicePoweredOrb } from "@/components/ui/voice-powered-orb";
+import { TalkingAvatar, type TalkingAvatarRef } from "@/components/ui/talking-avatar";
 import { Button } from "@/components/ui/button";
 
 interface VoiceChatScreenProps {
@@ -96,14 +96,14 @@ export default function VoiceChatScreen({
   onClose,
   onComplete,
 }: VoiceChatScreenProps) {
-  const [voiceDetected, setVoiceDetected] = useState(false);
   const [ringState, setRingState] = useState<RingState>("connecting");
   const [isListening, setIsListening] = useState(false);
-  const [statusText, setStatusText] = useState("Initializing interview...");
+  const [statusText, setStatusText] = useState("Loading 3D avatar...");
   const [error, setError] = useState<string | null>(null);
   const [endInterview, setEndInterview] = useState(false);
-  // Voice level 0-1 fed to the orb so it visually reacts.
-  const [orbVoiceLevel, setOrbVoiceLevel] = useState(0);
+  const [avatarReady, setAvatarReady] = useState(false);
+  const [userVoiceLevel, setUserVoiceLevel] = useState(0);
+  const [isAssistantSpeaking, setIsAssistantSpeaking] = useState(false);
 
   const sessionIdRef = useRef<string | null>(null);
   const closedRef = useRef(false);
@@ -115,6 +115,7 @@ export default function VoiceChatScreen({
   // New: track whether we are in the process of starting listening to avoid
   // duplicate startListeningCapture calls racing each other.
   const startingListenRef = useRef(false);
+  const avatarRef = useRef<TalkingAvatarRef>(null);
 
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentAudioUrlRef = useRef<string | null>(null);
@@ -184,6 +185,7 @@ export default function VoiceChatScreen({
 
     mediaRecorderRef.current = null;
     setIsListening(false);
+    setUserVoiceLevel(0);
     startingListenRef.current = false;
   }, [clearHardStopTimer, clearMonitorRaf]);
 
@@ -202,6 +204,7 @@ export default function VoiceChatScreen({
   const stopListeningCapture = useCallback(
     (processRecording: boolean) => {
       setIsListening(false);
+      setUserVoiceLevel(0);
       shouldProcessRecordingRef.current = processRecording;
       clearMonitorRaf();
       clearHardStopTimer();
@@ -481,7 +484,7 @@ export default function VoiceChatScreen({
         // If the assistant started speaking while we were monitoring, stop
         // immediately without processing.
         if (assistantSpeakingRef.current || closedRef.current) {
-          setOrbVoiceLevel(0);
+          setUserVoiceLevel(0);
           stopListeningCapture(false);
           return;
         }
@@ -495,9 +498,9 @@ export default function VoiceChatScreen({
         }
         const peakInt16 = Math.round((peak / 128) * 32767);
 
-        // Feed the orb visualizer (normalized 0-1).
+        // Normalized 0-1
         const normalizedLevel = Math.min(peakInt16 / 8000, 1);
-        setOrbVoiceLevel(normalizedLevel);
+        setUserVoiceLevel(normalizedLevel);
 
         if (peakInt16 >= VOLUME_THRESHOLD_INT16) {
           loudStreakRef.current += 1;
@@ -514,14 +517,12 @@ export default function VoiceChatScreen({
 
         // User stopped speaking — silence detected.
         if (speechStartedRef.current && now - lastSpeechAtRef.current >= SILENCE_STOP_MS) {
-          setOrbVoiceLevel(0);
           stopListeningCapture(true);
           return;
         }
 
         // Hard cap: user has been speaking too long.
         if (speechStartedRef.current && now - speechStartedAtRef.current >= MAX_POST_SPEECH_MS) {
-          setOrbVoiceLevel(0);
           stopListeningCapture(true);
           return;
         }
@@ -572,11 +573,12 @@ export default function VoiceChatScreen({
   const speakAssistant = useCallback(
     async (text: string) => {
       assistantSpeakingRef.current = true;
+      setIsAssistantSpeaking(true);
       // Stop any ongoing recording — we are about to play audio.
       stopListeningCapture(false);
       setStatusText("Interviewer is speaking...");
-      // Give the orb a moderate pulse while TTS plays.
-      setOrbVoiceLevel(0.45);
+      // Give the avatar a visual feedback? No, TTS does it.
+
 
       const normalized = (text || "").trim();
       const speakSeq = speakRequestSeqRef.current;
@@ -607,9 +609,11 @@ export default function VoiceChatScreen({
           listeningKickTimer2 = null;
         }
         assistantSpeakingRef.current = false;
+        setIsAssistantSpeaking(false);
         sendingTurnRef.current = false;
         startingListenRef.current = false;
-        setOrbVoiceLevel(0);
+
+        avatarRef.current?.stopSpeaking();
 
         if (endInterviewRef.current) {
           finishInterviewRef.current();
@@ -720,7 +724,7 @@ export default function VoiceChatScreen({
 
         if (speakSeq !== speakRequestSeqRef.current) return;
         if (!response.ok) {
-          throw new Error(`TTS failed (${response.status})`);
+          throw new Error(`TTS failed(${response.status})`);
         }
 
         const blob = await withTimeout(
@@ -762,6 +766,15 @@ export default function VoiceChatScreen({
           await playPromise;
         }
         startPlaybackWatchdog(audio);
+
+        // Let the avatar simulate lipsync for the audio duration
+        // We use playbackGuardMs bounds but usually audio.duration is better if available
+        let durationMs = playbackGuardMs;
+        if (Number.isFinite(audio.duration) && audio.duration > 0) {
+          durationMs = audio.duration * 1000;
+        }
+        avatarRef.current?.startSpeaking(durationMs); // Call startSpeaking once here
+
         if (audio.ended) {
           closePlayback();
           handoffToUser();
@@ -791,25 +804,10 @@ export default function VoiceChatScreen({
     const sid = sessionIdRef.current;
     closeAll();
 
-    if (!sid) {
-      onComplete(null);
-      finishingRef.current = false;
-      return;
-    }
-
-    try {
-      await fetch("/api/interview-session/finish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: sid, jobTitle, force: true }),
-      });
-    } catch (err) {
-      console.error("[VoiceInterview] Finalize failed:", err);
-    } finally {
-      onComplete(sid);
-      finishingRef.current = false;
-    }
-  }, [closeAll, jobTitle, onComplete]);
+    // Immediately handoff to the parent so the GeneratingReportScreen can take over and do the API call.
+    onComplete(sid);
+    finishingRef.current = false;
+  }, [closeAll, onComplete]);
 
   useEffect(() => {
     finishInterviewRef.current = () => {
@@ -821,6 +819,7 @@ export default function VoiceChatScreen({
     let cancelled = false;
 
     const startSession = async () => {
+      if (!avatarReady) return;
       if (hasStartedRef.current) return;
       hasStartedRef.current = true;
       setRingState("connecting");
@@ -887,15 +886,19 @@ export default function VoiceChatScreen({
       }
     };
 
-    void startSession();
+    if (avatarReady) {
+      void startSession();
+    }
 
     return () => {
       cancelled = true;
-      closedRef.current = true;
-      hasStartedRef.current = false;
-      closeAll();
+      if (avatarReady) {
+        closedRef.current = true;
+        hasStartedRef.current = false;
+        closeAll();
+      }
     };
-  }, [closeAll, initialSessionId, jobTitle]);
+  }, [closeAll, initialSessionId, jobTitle, avatarReady]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -920,17 +923,23 @@ export default function VoiceChatScreen({
 
       <motion.div
         initial={{ opacity: 0, scale: 0.85 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        className="relative h-56 w-56 sm:h-72 sm:w-72"
+        animate={{
+          opacity: 1,
+          scale: 1,
+          boxShadow: userVoiceLevel > 0.05
+            ? `0 0 ${20 + userVoiceLevel * 40}px ${userVoiceLevel * 10}px rgba(59, 130, 246, ${0.4 + userVoiceLevel * 0.4})`
+            : "0px 0px 0px 0px rgba(59, 130, 246, 0)"
+        }}
+        transition={{
+          opacity: { duration: 0.6 },
+          scale: { duration: 0.6 },
+          boxShadow: { duration: 0.1 }
+        }}
+        className="relative h-64 w-64 md:h-80 md:w-80 lg:h-96 lg:w-96 rounded-full bg-white/5 border border-white/10"
       >
-        <VoicePoweredOrb
-          // Disable orb-level microphone capture to avoid conflicts with interview recorder.
-          enableVoiceControl={false}
-          externalVoiceLevel={orbVoiceLevel}
-          className="overflow-hidden rounded-full"
-          onVoiceDetected={setVoiceDetected}
-        />
+        <div className="absolute inset-0 rounded-full overflow-hidden">
+          <TalkingAvatar ref={avatarRef} onReady={() => setAvatarReady(true)} />
+        </div>
       </motion.div>
 
       <motion.div
@@ -941,7 +950,7 @@ export default function VoiceChatScreen({
       >
         <div className="flex items-center gap-2">
           <span
-            className={`h-2 w-2 rounded-full ${(isListening || voiceDetected) ? "bg-green-400" : "bg-foreground/35"}`}
+            className={`h-2 w-2 rounded-full ${isListening || isAssistantSpeaking ? "bg-green-400" : "bg-foreground/35"}`}
           />
           <p className="text-sm text-foreground/60">{statusText}</p>
         </div>

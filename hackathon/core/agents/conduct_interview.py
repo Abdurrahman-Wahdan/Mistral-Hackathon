@@ -23,7 +23,6 @@ from hackathon.core.tools.interviewer_tools import (
     INTERVIEWER_TOOLS,
     set_session_outputs_dir,
     reset_session_outputs_dir,
-    get_logged_question_progress,
 )
 
 
@@ -52,16 +51,6 @@ def _normalize_text(content: Any) -> str:
                 parts.append(str(item))
         return "\n".join(p for p in parts if p).strip()
     return str(content).strip()
-
-
-def _continuation_message(unique_logged: int) -> str:
-    remaining = max(0, 3 - unique_logged)
-    if remaining <= 1:
-        return "Thanks for sharing. Before we conclude, I would like to ask one more behavioral question."
-    return (
-        "Thanks for sharing. Before we conclude, I would like to cover "
-        f"{remaining} more behavioral areas."
-    )
 
 
 async def main_async() -> None:
@@ -152,21 +141,7 @@ async def main_async() -> None:
                         )))
 
                     if end_interview:
-                        progress = get_logged_question_progress(session_outputs_dir)
-                        if progress["unique_logged"] < 3:
-                            end_interview = False
-                            agent_msg = _continuation_message(progress["unique_logged"])
-                            messages.append(AIMessage(content=json.dumps({
-                                "message_to_candidate": agent_msg,
-                                "end_interview": False,
-                            })))
-                            messages.append(SystemMessage(content=(
-                                "Internal rule reminder: You attempted to conclude early. "
-                                f"Unique logged questions are {progress['unique_logged']}/3. "
-                                "Continue the interview and ask a new behavioral question."
-                            )))
-                        else:
-                            messages.append(response)
+                        messages.append(response)
                     else:
                         messages.append(response)
 
