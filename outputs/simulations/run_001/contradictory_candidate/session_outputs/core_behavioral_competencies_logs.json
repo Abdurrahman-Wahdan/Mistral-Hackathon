@@ -1,0 +1,15 @@
+[
+    {
+        "question": "How do you typically approach situations where there’s uncertainty or pressure to move quickly? For example, have you ever had to make a tough call where you didn’t have all the data you needed, or where the stakes felt particularly high? How did you navigate that?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "You also mentioned something interesting about how close you came to deploying that feature too early. That makes me curious: how do you typically approach situations where there’s uncertainty or pressure to move quickly? For example, have you ever had to make a tough call where you didn’t have all the data you needed, or where the stakes felt particularly high? How did you navigate that?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh man, that’s a great question. There was this one time at LojistikZeka where we had to decide whether to switch from OpenAI’s GPT-4 to Anthropic’s Claude 3 for our supply chain agent. The pressure was on because our token costs were skyrocketing, and Claude promised better efficiency—but we didn’t have time for a full benchmark against our golden dataset.\n\nI remember the CTO wanted to just flip the switch and monitor in production, but I pushed back hard. We ended up running a quick A/B test in staging with a subset of historical queries, and within 48 hours, we found that Claude was actually *worse* at handling our edge cases—like parsing carrier API responses with missing fields. It would’ve been a disaster if we’d deployed it blindly.\n\nIn the end, we stuck with GPT-4 but optimized our prompts to reduce token usage. It wasn’t the perfect solution, but it bought us time to properly evaluate Claude later. The lesson? Even when you’re under pressure, you can’t skip the basics—like testing. Though, looking back, I wish I’d been more vocal earlier about the risks of switching models without proper validation. Hindsight’s 20/20, right?\n\n(Though, funnily enough, we *did* end up switching to Claude a few months later after they released a new version—so it all worked out in the end!)"
+            }
+        ]
+    }
+]

@@ -98,7 +98,7 @@ export default function CvUploadSection({ jobTitle, files, setFiles, onBack, onS
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            Apply for {jobTitle}
+            Interview Setup — {jobTitle}
           </motion.h2>
           <motion.p
             className="text-foreground/40 text-lg"
@@ -107,7 +107,7 @@ export default function CvUploadSection({ jobTitle, files, setFiles, onBack, onS
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.25 }}
           >
-            Upload your CV to complete your application
+            Upload your latest CV so the AI interviewer can personalize the interview.
           </motion.p>
         </motion.div>
 
@@ -156,8 +156,8 @@ export default function CvUploadSection({ jobTitle, files, setFiles, onBack, onS
               className="group h-auto bg-white text-black hover:bg-white/90 transition-all duration-300 shadow-2xl text-base px-6 py-4 font-semibold rounded-xl overflow-hidden"
               onClick={onSubmit}
             >
-              <span className="relative block">
-                <span className="block transition-opacity duration-300 group-hover:opacity-0">Submit</span>
+                <span className="relative block">
+                <span className="block transition-opacity duration-300 group-hover:opacity-0">Start Voice Interview</span>
                 <span className="absolute inset-0 flex items-center justify-center text-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100">&rarr;</span>
               </span>
             </Button>

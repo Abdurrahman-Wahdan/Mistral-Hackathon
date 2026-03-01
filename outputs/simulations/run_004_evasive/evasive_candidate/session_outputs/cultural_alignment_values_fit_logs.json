@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Have you ever found yourself in a position where you had to address a non-technical challenge—like negotiating with stakeholders, aligning teams, or even advocating for resources—that wasn’t strictly part of your job description? How did you approach that situation, and what was the outcome?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "Shifting gears a little, I’d love to explore how you navigate situations where you have to step outside your core role to unblock a project. For example, have you ever found yourself in a position where you had to address a non-technical challenge—like negotiating with stakeholders, aligning teams, or even advocating for resources—that wasn’t strictly part of your job description? How did you approach that situation, and what was the outcome?"
+            },
+            {
+                "role": "candidate",
+                "message": "Hmm, non-technical challenges... yeah, those pop up. There was this one time when the product team wanted to push a new feature for the supply chain agent, but they didn’t fully grasp the technical constraints. They kept asking for things that would’ve required a complete overhaul of the orchestration layer. I could’ve just said \"no\" and moved on, but instead, I set up a quick sync with them to walk through the trade-offs—like how adding X would increase latency or Y would require more compute costs.\n\nI put together a simple doc with pros and cons, and even mocked up a lightweight version of their ask to show what was feasible. They ended up scaling back the scope, and we shipped something that worked without derailing the whole project. Not sure if that counts as \"negotiating,\" but it felt like the right way to handle it."
+            }
+        ]
+    }
+]

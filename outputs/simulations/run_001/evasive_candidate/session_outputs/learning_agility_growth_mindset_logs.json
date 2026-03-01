@@ -1,0 +1,28 @@
+[
+    {
+        "question": "Those kinds of projects can be intense, right? There’s a lot of uncertainty, and sometimes things don’t go as planned. How do you typically navigate those moments when the path isn’t clear? What keeps you grounded or helps you push through?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "That’s such a powerful example—thank you for sharing that. It really resonates with me because I can hear how much that sense of impact drives you. It’s not just about the technical challenge, but about seeing the tangible difference your work makes in the real world. That’s exactly the kind of energy we value at Zephlen.\n\nI’m curious, though—those kinds of projects can be intense, right? There’s a lot of uncertainty, and sometimes things don’t go as planned. How do you typically navigate those moments when the path isn’t clear? What keeps you grounded or helps you push through?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh, absolutely—those moments are the worst, but also kind of the best, you know? Like, when you’re staring at a problem and nothing’s working, and you’re not even sure if it’s the model, the prompt, or just some random API quirk.\n\nI guess what helps is breaking it down. Like, instead of thinking, \"How do I make this entire agent work?\" I’ll focus on one tiny piece—maybe just getting the function calling to return *valid* JSON, or testing a single tool in isolation. And then, once that’s working, you build up from there. It’s like, you have to trust the process, even when it feels like you’re just spinning your wheels.\n\nAnd honestly, having a team that gets it helps a lot. When everyone’s in the trenches together, it’s easier to laugh about the absurdity of it all and keep going. But yeah, it’s definitely a rollercoaster."
+            }
+        ]
+    },
+    {
+        "question": "Can you share an example of a time when you had to learn something completely new to tackle a challenge? How did you approach it, and what did that experience teach you about yourself?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "You’ve already touched on this a bit, but I’d love to dig deeper into how you think about growth. At Zephlen, we’re all about learning and evolving, both as individuals and as a team. Can you share an example of a time when you had to learn something completely new to tackle a challenge? How did you approach it, and what did that experience teach you about yourself?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh man, where do I even start? Like, every time I think I’ve got a handle on this stuff, something new pops up. But I guess one of the biggest learning curves was when I first started working with autonomous agents at LojistikZeka. Before that, I was mostly doing backend stuff—APIs, databases, that kind of thing. But then suddenly, I was thrown into this world of LLMs, function calling, and orchestration loops, and it was like, \"Wait, how do I even *test* this thing?\"\n\nI remember spending weeks just experimenting with different frameworks—LangChain, AutoGen, even building some custom stuff from scratch. And it wasn’t just about the tech; it was about understanding how these models *think*, you know? Like, why does this prompt work but this other one doesn’t? Or how do you even measure if an agent is doing a good job?\n\nWhat I learned? That I actually *like* being uncomfortable. Like, I thrive in those moments where I don’t know the answer yet, but I know I can figure it out. And honestly, that’s probably why I’m so drawn to this field. It’s never boring."
+            }
+        ]
+    }
+]

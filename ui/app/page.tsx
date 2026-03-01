@@ -16,6 +16,10 @@ export default function Home() {
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
   const [cvFiles, setCvFiles] = useState<UploadedFile[]>([]);
   const [screen, setScreen] = useState<Screen>("browse");
+  const [interviewSessionId, setInterviewSessionId] = useState<string | null>(null);
+  const [preparedSessionId, setPreparedSessionId] = useState<string | null>(null);
+  const [isApiReady, setIsApiReady] = useState(false);
+  const [prepareError, setPrepareError] = useState<string | null>(null);
   const isNavigatingBackRef = useRef(false);
   const backTimeoutRef = useRef<number | null>(null);
   const scrollRafRef = useRef<number | null>(null);
@@ -112,20 +116,81 @@ export default function Home() {
     backTimeoutRef.current = window.setTimeout(finalize, 900);
   };
 
-  const handleSubmit = () => {
-    setScreen("analyzing");
-  };
+  const runPreparation = useCallback(async () => {
+    const cvFile = cvFiles.find((f) => f.status === "completed")?.file ?? null;
+    if (!selectedJob || !cvFile) {
+      setPrepareError("Please select a role and upload a valid CV before starting.");
+      return;
+    }
 
-  const handleAnalyzingReady = useCallback(() => {
-    setScreen("voiceChat");
+    setPreparedSessionId(null);
+    setIsApiReady(false);
+    setInterviewSessionId(null);
+    setPrepareError(null);
+    setScreen("analyzing");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", cvFile);
+      formData.append("job_title", selectedJob);
+      const res = await fetch("/api/prepare-session", { method: "POST", body: formData });
+
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { detail?: string; error?: string } | null;
+        const details = payload?.detail ?? payload?.error ?? `HTTP ${res.status}`;
+        throw new Error(`Preparation failed: ${details}`);
+      }
+
+      const data = (await res.json()) as { session_id?: string };
+      const sessionId = (data.session_id ?? "").trim();
+      if (!sessionId) {
+        throw new Error("Preparation failed: missing session id.");
+      }
+      setPreparedSessionId(sessionId);
+      setIsApiReady(true);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Preparation failed. Please try again.";
+      setPrepareError(message);
+      setIsApiReady(false);
+    }
+  }, [cvFiles, selectedJob]);
+
+  const handleSubmit = useCallback(() => {
+    void runPreparation();
+  }, [runPreparation]);
+
+  const handleAnalyzingRetry = useCallback(() => {
+    void runPreparation();
+  }, [runPreparation]);
+
+  const handleAnalyzingBack = useCallback(() => {
+    setScreen("browse");
+    setIsApiReady(false);
+    setPrepareError(null);
   }, []);
 
-  const handleVoiceInterviewComplete = () => {
+  const handleAnalyzingReady = useCallback(() => {
+    if (!preparedSessionId) {
+      setPrepareError("Preparation is not complete yet. Please retry.");
+      return;
+    }
+    setScreen("voiceChat");
+  }, [preparedSessionId]);
+
+  const handleVoiceInterviewComplete = (sessionId: string | null) => {
+    setInterviewSessionId(sessionId);
     setScreen("interviewReview");
   };
 
   const handleCloseVoiceChat = () => {
     setScreen("browse");
+    setInterviewSessionId(null);
+    setPreparedSessionId(null);
+    setIsApiReady(false);
+    setPrepareError(null);
     setSelectedJob(null);
     setCvFiles([]);
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -136,15 +201,15 @@ export default function Home() {
       {screen === "browse" && (
         <>
           <LiquidMetalHero
-            badge="✨ Next Generation UI"
-            title="Fluid Design Excellence"
-            subtitle="Experience the future of web interfaces with liquid metal aesthetics that adapt, flow, and captivate. Built for modern applications that demand both beauty and performance."
-            primaryCtaLabel="Get Started"
+            badge="AI Interviewer Platform"
+            title="Practice Interviews with an AI Hiring Team"
+            subtitle="Select a role, upload your CV, and run a realistic voice interview powered by your own agent stack. Receive a structured report with strengths, gaps, and next-step coaching."
+            primaryCtaLabel="Start"
             onPrimaryCtaClick={scrollToJobs}
             features={[
-              "Seamless Animations",
-              "Responsive Excellence",
-              "Modern Architecture"
+              "Role-Specific Questions",
+              "Live AI Interview Flow",
+              "Actionable Performance Review"
             ]}
           />
           <JobsList onApply={handleApply} />
@@ -160,22 +225,19 @@ export default function Home() {
         </>
       )}
 
-      <AnimatePresence>
-        {screen === "analyzing" && selectedJob && (
-          <motion.div
-            key="analyzing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <AnalyzingScreen jobTitle={selectedJob} onReady={handleAnalyzingReady} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {screen === "analyzing" && selectedJob && (
+        <AnalyzingScreen
+          jobTitle={selectedJob}
+          ready={isApiReady}
+          error={prepareError}
+          onRetry={handleAnalyzingRetry}
+          onBack={handleAnalyzingBack}
+          onReady={handleAnalyzingReady}
+        />
+      )}
 
       <AnimatePresence>
-        {screen === "voiceChat" && selectedJob && (
+        {screen === "voiceChat" && selectedJob && preparedSessionId && (
           <motion.div
             key="voiceChat"
             initial={{ opacity: 0 }}
@@ -185,6 +247,7 @@ export default function Home() {
           >
             <VoiceChatScreen
               jobTitle={selectedJob}
+              initialSessionId={preparedSessionId}
               onClose={handleCloseVoiceChat}
               onComplete={handleVoiceInterviewComplete}
             />
@@ -201,7 +264,11 @@ export default function Home() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <InterviewReviewScreen jobTitle={selectedJob} onClose={handleCloseVoiceChat} />
+            <InterviewReviewScreen
+              jobTitle={selectedJob}
+              sessionId={interviewSessionId}
+              onClose={handleCloseVoiceChat}
+            />
           </motion.div>
         )}
       </AnimatePresence>

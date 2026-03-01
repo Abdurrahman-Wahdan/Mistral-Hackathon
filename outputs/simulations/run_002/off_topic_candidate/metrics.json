@@ -1,0 +1,37 @@
+{
+  "scenario": "off_topic_candidate",
+  "start_time_utc": "2026-02-28T19:25:07.883884+00:00",
+  "end_time_utc": "2026-02-28T19:27:06.660140+00:00",
+  "duration_seconds": 118.78,
+  "status": "success",
+  "error": "",
+  "metrics": {
+    "ended_normally": true,
+    "forced_termination": false,
+    "interviewer_turns": 8,
+    "candidate_turns": 7,
+    "tool_call_count": 5,
+    "tool_usage": {
+      "list_categories": 1,
+      "get_asked_questions": 1,
+      "read_questions": 1,
+      "log_qa": 2
+    },
+    "json_parse_failures": 0,
+    "categories_logged": 2,
+    "segments_logged": 2,
+    "questions_logged": 2,
+    "unique_questions": 2,
+    "repeated_questions": 0,
+    "category_breakdown": {
+      "learning_agility_growth_mindset": 1,
+      "core_behavioral_competencies": 1
+    },
+    "quality_score": 90,
+    "professionalism_issues": 0,
+    "technical_question_hits": 0,
+    "redirect_count": 0,
+    "needs_redirect": true,
+    "redirect_observed": false
+  }
+}

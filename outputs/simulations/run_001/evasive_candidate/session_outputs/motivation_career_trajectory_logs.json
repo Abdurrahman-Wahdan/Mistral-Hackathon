@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Can you tell me about a time when you felt truly motivated and engaged in a role? What was it about that situation that made you feel that way?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "You mentioned loving environments where work feels meaningful and has impact. I’d love to explore that a bit more with you. Can you tell me about a time when you felt truly motivated and engaged in a role? What was it about that situation that made you feel that way?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh, you know, it’s always those projects where you’re building something *new*—something that hasn’t been done before, or at least not in the way you’re doing it. Like, at LojistikZeka, when we were first experimenting with the supply chain agent, it was this messy, chaotic process. No one really knew how to make an LLM *actually* reroute shipments in real time without breaking everything. \n\nBut when we finally got it working—when the agent started making decisions that saved the company real money—that was a rush. It wasn’t just about writing code; it was about solving a problem that mattered. And honestly, that’s the kind of thing that keeps me going. When the work feels like it’s pushing boundaries, not just checking boxes."
+            }
+        ]
+    }
+]

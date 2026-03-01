@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Can you describe the kind of work environment where you feel you do your best work? What’s important to you in a team or company culture?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "That’s such a great mindset to have—embracing the discomfort and seeing it as an opportunity to grow. It’s clear that you don’t just adapt to change; you thrive in it, and that’s exactly the kind of energy we love at Zephlen. \n\nI’d love to shift gears a little and talk about something equally important: cultural fit. At Zephlen, we’re not just building products; we’re building a team that feels like a community. We value collaboration, curiosity, and a shared sense of purpose. \n\nCan you describe the kind of work environment where you feel you do your best work? What’s important to you in a team or company culture?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh, that’s a good question. I guess the best environments for me are the ones where people are *genuinely* excited about what they’re building—not just going through the motions. Like, where everyone’s bringing their own ideas to the table, but also willing to challenge each other in a good way. I don’t do well in places where it’s all hierarchy and politics; I’d rather be somewhere where the best idea wins, even if it comes from the newest person on the team.\n\nAnd I love teams that are a little scrappy, you know? Where people are willing to roll up their sleeves and figure things out together, even if it’s messy. Like, at LojistikZeka, we had this one hackathon where we were trying to get the agent to handle edge cases in the supply chain data, and by the end of it, we were all just laughing because we’d tried like five different approaches and none of them worked *quite* right. But that’s how you learn, right?\n\nOh, and autonomy is huge for me. I like having the space to experiment and take ownership of what I’m working on, but also knowing I can ask for help when I need it. That balance is everything."
+            }
+        ]
+    }
+]

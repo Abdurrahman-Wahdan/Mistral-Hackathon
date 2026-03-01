@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Your open-source project, Auto-Dev-Reviewer, gained traction with 15+ teams in Turkey adopting it—only for GitHub to later announce a native AI PR review feature that made parts of your tool redundant. How did you process this shift? Did you double down on differentiating your project, pivot its focus entirely, or archive it and move on? Take me through your decision-making and how you managed any frustration, especially given the time you’d invested.",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "Your open-source project, Auto-Dev-Reviewer, gained traction with 15+ teams in Turkey adopting it—only for GitHub to later announce a native AI PR review feature that made parts of your tool redundant. How did you process this shift? Did you double down on differentiating your project, pivot its focus entirely, or archive it and move on? Take me through your decision-making and how you managed any frustration, especially given the time you’d invested."
+            },
+            {
+                "role": "candidate",
+                "message": "Ugh, that GitHub announcement hit me like a ton of bricks. I’d just given a talk at a local meetup about Auto-Dev-Reviewer the week before, and suddenly it felt like I’d built a better mousetrap right as someone invented cats. I’ll admit—I spent a weekend just venting to my cat about how unfair it was.\n\nBut then I took a step back and asked myself: *What does my tool do that GitHub’s can’t?* GitHub’s feature was generic—it didn’t know our teams’ specific style guides, internal tools, or domain quirks. So I pivoted hard toward *customization*. I rebuilt the agent to let teams plug in their own vector DBs for company-specific docs (like \"How we use Redis at Company X\") and added support for custom static analysis tools. Basically, I turned it from a generalist into a specialist.\n\nI also leaned into the open-source community. Instead of seeing GitHub as competition, I framed Auto-Dev-Reviewer as a \"bring your own brain\" alternative—like, \"Use GitHub’s AI for the basics, but layer ours on top for your team’s unique needs.\" The stars on GitHub actually *increased* after that pivot.\n\nLooking back, I’m glad it happened. It forced me to focus on what really mattered: solving problems no one else was solving. And honestly? It made the project way more valuable. Sometimes disruption is just evolution in disguise."
+            }
+        ]
+    }
+]

@@ -1,0 +1,15 @@
+[
+    {
+        "question": "I noticed you mentioned your experience at LojistikZeka. Could you share a bit about what it was like working there? What’s something—good or bad—that stood out to you about the culture or the way the team operated?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "I noticed you mentioned your experience at LojistikZeka. That sounds like a challenging environment! Could you share a bit about what it was like working there? What’s something—good or bad—that stood out to you about the culture or the way the team operated?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh, absolutely! LojistikZeka was a really interesting place to work—especially the culture. On one hand, it was super fast-paced, almost chaotic at times, which I actually thrived in. The team was small but scrappy, and we had to move quickly to keep up with the demands of the supply chain industry. I loved that we were encouraged to experiment, even if it meant breaking things occasionally.\n\nThat said, it wasn’t all smooth sailing. The culture could be a bit *too* reactive—like, we’d often pivot to the latest crisis without always having a long-term plan. For example, when we first deployed the autonomous supply chain agent, there was a lot of pressure to get it live ASAP, which led to some technical debt we had to clean up later. But hey, that’s startups for you, right? You learn to adapt.\n\nI’d say the biggest standout was how much ownership everyone had. Even as an individual contributor, I felt like my work directly impacted the company’s bottom line, which was really motivating. Though, looking back, I do wish we’d had a bit more structure around documentation—sometimes knowledge got siloed, and that made onboarding new team members a challenge."
+            }
+        ]
+    }
+]

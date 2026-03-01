@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Can you tell me about a time when you had to navigate a situation where the stakes were high, and you had to make a decision with limited information? How did you handle it?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "Speaking of problem-solving, I’d love to explore how you approach challenges in more depth. For example, can you tell me about a time when you had to navigate a situation where the stakes were high, and you had to make a decision with limited information? How did you handle it?"
+            },
+            {
+                "role": "candidate",
+                "message": "Supply chain reroute during storm alerts. Situation: Carrier APIs down, 200+ shipments at risk. Task: Decide reroute logic in 30 mins. Action: Used cached carrier data + weather API fallback, prioritized high-value shipments. Result: Saved 85% of at-risk loads. Later built auto-fallback into the agent."
+            }
+        ]
+    }
+]

@@ -1,4 +1,4 @@
-from typing import TypedDict, Annotated, Dict
+from typing import TypedDict, Annotated, Dict, Any
 import operator
 
 class InterviewState(TypedDict):
@@ -12,4 +12,4 @@ class InterviewState(TypedDict):
     
     # Outputs: dictionary matching agent name to their generated questions
     # Using 'operator.ior' to update the dictionary as nodes run in parallel
-    generated_questions: Annotated[Dict[str, str], operator.ior]
+    generated_questions: Annotated[Dict[str, Dict[str, Any]], operator.ior]

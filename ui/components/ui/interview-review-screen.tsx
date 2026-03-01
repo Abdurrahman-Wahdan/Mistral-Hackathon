@@ -21,12 +21,13 @@ interface InterviewReviewPayload {
 
 interface InterviewReviewScreenProps {
   jobTitle: string;
+  sessionId: string | null;
   onClose: () => void;
 }
 
 const MIN_LOADING_MS = 2600;
 
-export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewReviewScreenProps) {
+export default function InterviewReviewScreen({ jobTitle, sessionId, onClose }: InterviewReviewScreenProps) {
   const [stage, setStage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [review, setReview] = useState<InterviewReviewPayload | null>(null);
@@ -56,7 +57,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ jobTitle }),
+          body: JSON.stringify({ jobTitle, sessionId }),
           signal,
         }),
         new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
@@ -65,19 +66,19 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
       if (signal?.aborted) return;
 
       if (!response.ok) {
-        throw new Error("Failed to load interview review");
+        throw new Error("Failed to load interview performance review");
       }
 
       const payload = (await response.json()) as InterviewReviewPayload;
       setReview(payload);
     } catch {
       if (signal?.aborted) return;
-      setError("Could not load your interview report. Please try again.");
+      setError("Could not load your interview performance report. Please try again.");
     } finally {
       if (signal?.aborted) return;
       setIsLoading(false);
     }
-  }, [jobTitle]);
+  }, [jobTitle, sessionId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -149,7 +150,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
 
         <div className="relative z-10 w-full max-w-2xl rounded-3xl border border-white/15 bg-black/70 p-8 sm:p-10 backdrop-blur-2xl">
           <p className="mb-4 text-xs uppercase tracking-[0.22em] text-foreground/40">Post Interview</p>
-          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">Analyzing your interview</h2>
+          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">Generating your final interview report</h2>
 
           <AnimatePresence>
             {stage >= 1 && (
@@ -158,7 +159,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
                 animate={{ opacity: 1, y: 0 }}
                 className="text-foreground/55"
               >
-                Building your structured review for <span className="text-foreground/80">{jobTitle}</span>
+                Compiling role-specific analysis for <span className="text-foreground/80">{jobTitle}</span>
               </motion.p>
             )}
           </AnimatePresence>
@@ -189,7 +190,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
                 animate={{ opacity: 1 }}
                 className="mt-5 text-sm text-foreground/40"
               >
-                Generating insights, summary, and downloadable report...
+                Finalizing strengths, weaknesses, and coaching recommendations...
               </motion.p>
             )}
           </AnimatePresence>
@@ -205,7 +206,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
         <div className="pointer-events-none absolute inset-0 z-0 bg-black/55" />
 
         <div className="relative z-10 w-full max-w-xl rounded-2xl border border-white/15 bg-black/70 backdrop-blur-xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-3">Report unavailable</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-3">Review unavailable</h2>
           <p className="text-foreground/60 mb-8">{error ?? "No report was returned by the backend."}</p>
           <div className="flex items-center justify-center gap-4">
             <Button
@@ -213,7 +214,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
               className="border-white/20 bg-transparent text-foreground hover:bg-white/10"
               onClick={onClose}
             >
-              Back to jobs
+              Back to roles
             </Button>
             <Button className="bg-white text-black hover:bg-white/90" onClick={() => void loadReview()}>
               Retry
@@ -240,11 +241,11 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-foreground/40 mb-2">Interview Intelligence</p>
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">Your review is ready</h2>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">Your interview review is ready</h2>
                 <p className="mt-2 text-sm text-foreground/50">Role: <span className="text-foreground/80">{jobTitle}</span></p>
               </div>
               <div className="rounded-full border border-white/20 bg-black/60 px-4 py-2 text-sm text-foreground/75">
-                Report generated
+                Final report generated
               </div>
             </div>
           </div>
@@ -257,7 +258,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
               </div>
 
               <div className="rounded-2xl border border-white/12 bg-black/55 p-5 sm:p-6">
-                <p className="mb-4 text-xs uppercase tracking-[0.16em] text-foreground/40">Interview insights</p>
+                <p className="mb-4 text-xs uppercase tracking-[0.16em] text-foreground/40">Key interview insights</p>
                 <div className="space-y-3">
                   {review.analysisHighlights.map((highlight) => (
                     <div
@@ -286,18 +287,18 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
                 className="w-full text-left rounded-2xl border border-white/15 bg-black/55 hover:bg-black/65 transition-all p-5"
                 onClick={() => setIsReportModalOpen(true)}
               >
-                <p className="text-xs uppercase tracking-[0.16em] text-foreground/40 mb-2">Review file</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-foreground/40 mb-2">Report file</p>
                 <p className="text-lg font-medium text-foreground break-all">{review.report.fileName}</p>
                 <p className="mt-2 text-sm text-foreground/45">Generated {reportDate}</p>
                 <div className="mt-4 inline-flex items-center rounded-full border border-white/20 px-3 py-1 text-xs text-foreground/70">
-                  Open preview and download
+                  Open, review, and download
                 </div>
               </button>
 
               <div className="rounded-2xl border border-white/12 bg-black/55 p-5">
-                <p className="text-xs uppercase tracking-[0.16em] text-foreground/40 mb-2">Next step</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-foreground/40 mb-2">Recommended next step</p>
                 <p className="text-sm text-foreground/65">
-                  Review the report, then rerun the interview flow after applying improvements to compare outcomes.
+                  Apply the recommendations, then run a new session to measure improvement against this baseline.
                 </p>
               </div>
             </div>
@@ -310,7 +311,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
               className="border-white/20 text-foreground hover:bg-white/10 bg-transparent"
               onClick={onClose}
             >
-              Back to Jobs
+              Back to Roles
             </Button>
           </div>
         </motion.div>
@@ -335,7 +336,7 @@ export default function InterviewReviewScreen({ jobTitle, onClose }: InterviewRe
             >
               <div className="border-b border-white/10 px-5 py-4 sm:px-6 sm:py-5 flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.16em] text-foreground/45 mb-1">Review File Preview</p>
+                  <p className="text-xs uppercase tracking-[0.16em] text-foreground/45 mb-1">Report Preview</p>
                   <p className="text-sm sm:text-base text-foreground/90 break-all">{review.report.fileName}</p>
                 </div>
                 <button

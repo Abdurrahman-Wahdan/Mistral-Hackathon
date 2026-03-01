@@ -1,0 +1,28 @@
+[
+    {
+        "question": "Imagine you’re midway through a major project—something you’ve invested months into—and leadership suddenly asks you to pivot to a completely different approach or tool, one that’s unproven or even risky. How do you react in the moment, both emotionally and professionally? And more importantly, how do you decide whether to push back, adapt, or find a middle ground while keeping stakeholders on board?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "You’ve shared some fantastic examples of leadership and resilience—it’s clear you’re someone who thrives even when things don’t go as planned. \n\nI’d love to explore how you handle situations where the ground shifts beneath you. For example, imagine you’re midway through a major project—something you’ve invested months into—and leadership suddenly asks you to pivot to a completely different approach or tool, one that’s unproven or even risky. \n\nHow do you react in the moment, both emotionally and professionally? And more importantly, how do you decide whether to push back, adapt, or find a middle ground while keeping stakeholders on board?"
+            },
+            {
+                "role": "candidate",
+                "message": "Frustrating at first—especially if the pivot feels arbitrary. But I ask: *'What’s the real goal here?*' If it’s valid, I’ll propose a hybrid path—like running both approaches in parallel for a sprint to compare metrics. If the pivot’s based on hype, not data? I push back with a cost-benefit analysis. Usually, leadership just wants confidence it’ll work. Show them a plan."
+            }
+        ]
+    },
+    {
+        "question": "When you look back at your journey so far, what’s one thing you’ve had to unlearn or relearn—whether it’s about how you work, lead, or even how you define success? And how did that shift change the way you approach your work today?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "That’s a really thoughtful approach—focusing on the goal rather than the tool or method is such a smart way to navigate those kinds of situations. It sounds like you’ve had to adapt more than a few times in your career! \n\nI’d love to wrap up with one last question, and it’s a bit more personal. When you look back at your journey so far, what’s one thing you’ve had to unlearn or relearn—whether it’s about how you work, lead, or even how you define success? And how did that shift change the way you approach your work today?"
+            },
+            {
+                "role": "candidate",
+                "message": "Used to think 'perfect code' mattered most. Now? Speed + impact > elegance. Shipped the supply chain agent in 3 weeks with duct-tape Python. Refactored later—saved the company first."
+            }
+        ]
+    }
+]

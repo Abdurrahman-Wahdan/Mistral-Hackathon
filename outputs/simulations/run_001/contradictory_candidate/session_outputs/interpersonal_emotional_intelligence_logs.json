@@ -1,0 +1,15 @@
+[
+    {
+        "question": "During the migration from LangChain to your custom orchestration engine at LojistikZeka, you likely faced resistance from stakeholders worried about disruption. Can you walk me through a moment like that? How did you balance your technical conviction with their concerns, and what did you learn about aligning people who might be coming from very different perspectives?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "Speaking of ownership and collaboration, I’d love to hear about a time when you had to navigate a tricky interpersonal dynamic—maybe pushing back on a decision or managing feedback with someone who saw things differently. \n\nFor example, during the migration from LangChain to your custom orchestration engine at LojistikZeka, you likely faced resistance from stakeholders worried about disruption. Can you walk me through a moment like that? How did you balance your technical conviction with their concerns, and what did you learn about aligning people who might be coming from very different perspectives?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh, that’s a great example—though, actually, the migration from LangChain wasn’t as contentious as you might think. The team was pretty open to it because the existing pipeline was so brittle. But I *did* have a situation where I had to push back on a stakeholder’s request to rush the deployment of a new feature for the supply chain agent.\n\nThe sales team wanted to add real-time carrier API integrations to the agent’s toolset *before* we’d fully stress-tested the existing workflows. They were convinced it would close a big deal, but I knew it could destabilize the system if we didn’t properly handle rate limits and error cases. I remember one heated meeting where I had to explain that while I understood the business pressure, deploying half-baked tooling would cost us more in the long run—like the time we had to roll back a feature that caused a 20% spike in failed rerouting attempts.\n\nI ended up proposing a compromise: we’d build a minimal version of the integration with strict safeguards and monitor it closely in a staging environment. That way, sales could demo it to the client, but we wouldn’t risk breaking production. It worked out—we caught a critical edge case during testing that would’ve caused major issues, and the client was still impressed with the progress.\n\nLooking back, I think the key was framing my pushback in terms of *shared goals*—like, \"I want this deal to succeed too, but here’s how we can do it without jeopardizing the system.\" It’s easy to get defensive when someone questions your work, but focusing on the bigger picture helped keep the conversation productive. Though, honestly, I still cringe thinking about how close we came to deploying that feature too early!"
+            }
+        ]
+    }
+]

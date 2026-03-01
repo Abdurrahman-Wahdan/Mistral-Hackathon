@@ -103,7 +103,7 @@ export const FileUploadCard = React.forwardRef<HTMLDivElement, FileUploadCardPro
             <div className="flex-1">
               <h3 className="text-base font-semibold text-foreground">Upload your CV</h3>
               <p className="text-sm text-foreground/40 mt-0.5">
-                PDF or DOCX, up to 10 MB
+                PDF or DOCX, up to 10 MB. This is used for interview personalization.
               </p>
             </div>
             {onClose && (
@@ -143,10 +143,10 @@ export const FileUploadCard = React.forwardRef<HTMLDivElement, FileUploadCardPro
               <UploadCloud className="w-8 h-8 text-foreground/30 mb-4 mx-auto" />
             </motion.div>
             <p className="font-medium text-foreground/80 text-sm">
-              {isDragging ? "Drop your file here" : "Drag & drop or click to browse"}
+              {isDragging ? "Drop your CV here" : "Drag & drop your CV or click to browse"}
             </p>
             <p className="text-xs text-foreground/30 mt-2">
-              PDF and DOCX formats accepted
+              Supported formats: PDF and DOCX
             </p>
           </motion.div>
         </div>
@@ -193,7 +193,7 @@ export const FileUploadCard = React.forwardRef<HTMLDivElement, FileUploadCardPro
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                             >
-                              {file.status === "uploading" ? `${file.progress}%` : "Ready"}
+                              {file.status === "uploading" ? `${file.progress}%` : "Uploaded"}
                             </motion.span>
                           </div>
                           {file.status === "uploading" && (

@@ -1,0 +1,23 @@
+[
+    {
+        "question": "Can you share an example of a time when you had to adapt to a significant change at work? What was the situation, and how did you handle it?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "Can you share an example of a time when you had to adapt to a significant change at work? What was the situation, and how did you handle it?"
+            },
+            {
+                "role": "candidate",
+                "message": "Hmm, change is always happening, right? I mean, in tech, things shift pretty fast. There was one time where the tools we were using just weren’t cutting it anymore. We had to figure out a better way to handle the workflow, but it wasn’t super straightforward. I guess we just... adjusted. It took some trial and error, but we got there eventually. It’s hard to say exactly what worked because it was a team effort, you know? Everyone kind of pitched in where they could."
+            },
+            {
+                "role": "hr",
+                "message": "That’s a great start, and I completely agree—change is a constant, especially in fast-paced environments like tech. I appreciate you sharing that example. You mentioned it was a team effort, which is fantastic. I’d love to dig a little deeper into your personal role in that process. What was one specific challenge you faced during that transition, and how did you address it? For instance, was there a moment where you had to step up or think differently to help the team move forward?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh, you know, it was one of those things where the old system just wasn’t scaling. The agent we’d built was hitting a wall—like, it couldn’t handle the complexity of the tasks anymore. The completion rate was dropping, and latency was all over the place. I guess I just started poking around under the hood. The LangChain setup we had was convenient at first, but it was too rigid for what we needed. So I ended up rewriting the orchestration layer from scratch in Python, making it more deterministic. That way, we could control the flow better and add proper error handling. It wasn’t anything groundbreaking—just a lot of testing and tweaking until the numbers started looking better. The team was happy with the results, so that’s what mattered."
+            }
+        ]
+    }
+]

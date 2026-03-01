@@ -39,11 +39,33 @@ class Settings(BaseSettings):
 
     # ===== Provider API Keys =====
     MISTRAL_API_KEY: str = ""
+    ELEVENLABS_API_KEY: str = ""
+    ELEVENLABS_VOICE_ID: str = "OYTbf65OHHFELVut7v2H"
 
     # ===== Default LLM Settings =====
     DEFAULT_MODEL: str = "mistral-large-latest"
     DEFAULT_TEMPERATURE: float = 0.1
     DEFAULT_MAX_TOKENS: int = 4096
+
+    # ===== HR Agent LLM Settings =====
+    HR_QUESTION_GEN_MODEL: str = "mistral-medium-latest"
+    HR_QUESTION_GEN_TEMPERATURE: float = 0.2
+
+    HR_INTERVIEW_MODEL: str = "mistral-large-latest"
+    HR_INTERVIEW_TEMPERATURE: float = 0.1
+
+    HR_SIM_CANDIDATE_MODEL: str = "mistral-large-latest"
+    HR_SIM_CANDIDATE_TEMPERATURE: float = 0.5
+
+    HR_ANALYSIS_MODEL: str = "mistral-medium-latest"
+    HR_ANALYSIS_TEMPERATURE: float = 0.2
+    HR_ANALYSIS_CONCURRENCY: int = 4
+
+    # ===== Retry & Resilience =====
+    LLM_MAX_RETRIES: int = 6
+    LLM_RETRY_BASE_DELAY_SECONDS: float = 1.0
+    LLM_RETRY_MAX_DELAY_SECONDS: float = 20.0
+    LLM_RETRY_JITTER_RATIO: float = 0.2
 
     # ===== Qdrant Vector Database Configuration =====
     QDRANT_URL: str = Field(default="http://localhost:6333", validation_alias="QDRANT_API_URL")
@@ -69,6 +91,9 @@ class Settings(BaseSettings):
     # ===== Application Settings =====
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "INFO"
+    INTERVIEW_API_HOST: str = "0.0.0.0"
+    INTERVIEW_API_PORT: int = 8081
+    INTERVIEW_API_CORS_ORIGINS: str = "*"
 
     @model_validator(mode='after')
     def decrypt_sensitive_fields(self):

@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Is there anything else you feel is important for us to know about you—whether it’s about your approach to work, your values, or what you’re looking for in your next role?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "You know, as we’re wrapping up, I’d love to give you the space to share anything else you feel is important for us to know about you. Is there anything we haven’t covered yet that you’d like to highlight—whether it’s about your approach to work, your values, or what you’re looking for in your next role?"
+            },
+            {
+                "role": "candidate",
+                "message": "Thanks for that—I really appreciate the space to share. One thing I’d love to highlight is how much I value **building systems that actually *do* things**, not just systems that *respond*. At LojistikZeka, I saw firsthand how powerful it is when AI moves beyond chat interfaces and becomes an execution engine. That’s the kind of work that excites me: designing agents that can reason, plan, and act autonomously in complex environments.\n\nI’m also someone who thrives in **collaborative, fast-moving teams** where experimentation is encouraged. For example, during the Mistral hackathon, my team and I built \"LegalEagle\" in just 48 hours—a multi-agent system that negotiated SaaS contracts. It was chaotic, but the energy of iterating quickly and solving problems on the fly was incredible. I’d love to bring that same energy to Zephlen.\n\nAs for what I’m looking for next: I want to work somewhere that’s **pushing the boundaries of what autonomous agents can do**, not just incrementally improving existing tools. Zephlen’s focus on building the next generation of digital workers really resonates with me. I’m also excited about the opportunity to **shape the architecture** of a company from the ground up—something I’ve been craving after working in more established systems.\n\nAnd, of course, I’d love to work with a team that values **open-source contributions** and gives engineers the freedom to experiment. The compute budget for personal projects is a huge plus—I’ve got a backlog of agent ideas I’d love to prototype!\n\nThanks again for the great conversation. I’m really excited about the possibility of joining Zephlen!"
+            }
+        ]
+    }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "role": "hr",
+    "message": "Hello! Welcome, and thank you for joining me today. How are you doing so far?"
+  },
+  {
+    "role": "candidate",
+    "message": "Hello! I'm doing well, thank you for having me. How about you?"
+  },
+  {
+    "role": "hr",
+    "message": "I'm doing great, thank you for asking! I really appreciate you taking the time to chat with me today. Before we dive in, I’d love to know—what’s been the highlight of your week so far?"
+  },
+  {
+    "role": "candidate",
+    "message": "Oh, that’s a nice question! The highlight was actually seeing the autonomous supply chain agent I’ve been working on at LojistikZeka hit a new milestone—it successfully rerouted a high-priority shipment during a sudden port closure without any human intervention. It’s always rewarding to see these systems work in real-world scenarios. How about you? Any highlights on your end?"
+  },
+  {
+    "role": "hr",
+    "message": "That sounds incredibly rewarding! It’s always amazing to see technology make a real impact, especially in high-pressure situations like that. I can tell you’re passionate about your work—that’s exactly the kind of energy we love to see here.\n\nSpeaking of passion, I’d love to explore what drives you a bit more. But first, I want to make sure this conversation feels natural and engaging for you. Let’s start with something a little lighter: if you could describe your journey in your career so far in just three words, what would they be?"
+  },
+  {
+    "role": "candidate",
+    "message": "Hmm, that’s a fun one! I’d say: **Curious, hands-on, and agentic**—though I might be cheating with that last one since it’s literally in the job description. *Laughs* But seriously, I’ve always been drawn to solving problems where software can act autonomously, not just respond. That’s what led me from backend engineering into building AI agents."
+  },
+  {
+    "role": "hr",
+    "message": "I love that! 'Agentic' is such a unique and powerful word to describe your journey—it really captures the proactive mindset we value here. And it’s great to hear how your curiosity and hands-on approach have shaped your path. It sounds like you’ve always been someone who doesn’t just wait for opportunities but creates them, which is exactly what we look for in our team.\n\nYou know, your story reminds me of how important it is to align what you do with what truly excites you. I’d love to dig a little deeper into that. Can you tell me about a time when you felt truly in your element at work? What were you doing, and what made it feel so right?"
+  },
+  {
+    "role": "candidate",
+    "message": "Oh, that’s a great question. I’d say the moment that really stands out was when I was building the first version of the autonomous supply chain agent at LojistikZeka. We had this messy, real-world problem—shipments getting delayed due to weather or carrier issues—and no clear playbook for how to solve it with AI.\n\n**Situation:** The company was losing millions in delay penalties, and the existing LangChain-based pipeline was too fragile—it would fail silently or give inconsistent outputs.\n\n**Task:** I was tasked with designing something that could dynamically reroute shipments in real time, using live weather data and carrier APIs, without human intervention.\n\n**Action:** I scrapped the LangChain approach and built a custom orchestration engine in Python. I used Pydantic to enforce strict tool-calling schemas for the LLM (GPT-4 at the time), so we could guarantee valid JSON outputs. I also set up a robust observability stack with LangSmith and Grafana to trace every step of the agent’s reasoning.\n\n**Result:** The agent went live and immediately started saving the company money—we cut delay penalties by ₺15M annually. But what made it feel so right wasn’t just the numbers. It was seeing the system *actually think*—handling edge cases, recovering from errors, and making decisions like a human operator would, but faster and at scale. That’s when I knew I was in the right space.\n\nIt’s the kind of work where you’re not just writing code; you’re building something that *does* things on its own. That’s the thrill for me."
+  },
+  {
+    "role": "hr",
+    "message": "That’s such a powerful example—thank you for sharing it! What really stands out to me is how you didn’t just solve the problem; you built a system that could *think* and adapt on its own. That’s exactly the kind of innovation we admire here. It’s clear that autonomy and impact are huge motivators for you, and I love how you tied that back to the thrill of seeing your work come to life.\n\nYou know, hearing you talk about this reminds me of how important it is to not only have the skills to execute but also the mindset to push boundaries. I’d love to explore that a little more. Can you tell me about a time when you had to learn something completely new to tackle a challenge? How did you approach it, and what did you take away from the experience?"
+  },
+  {
+    "role": "candidate",
+    "message": "Absolutely! One that comes to mind was when I first started working with **function calling** in LLMs. At the time, it was still a pretty new concept—OpenAI had just introduced it, and there wasn’t much documentation or best practices out there.\n\n**Situation:** We needed our supply chain agent to reliably interact with external APIs (like weather services and carrier systems) to make real-time decisions. But LLMs were notorious for giving inconsistent outputs—sometimes they’d return malformed JSON, or the data wouldn’t match the expected schema.\n\n**Task:** I had to figure out how to make the LLM *always* return valid, structured outputs that our system could act on without manual intervention.\n\n**Action:** I dove into the OpenAI API docs, but more importantly, I started experimenting. I built a bunch of Pydantic models to enforce strict schemas for the tool calls, and I wrote custom validation layers to catch and retry any malformed responses. I also spent a lot of time tweaking the system prompts to guide the LLM toward the right behavior. It was a lot of trial and error, but I eventually landed on a pattern that worked.\n\n**Result:** The tool-calling infrastructure I built reduced parsing errors to *virtually zero* in production. It became a core part of our agent’s reliability, and I even open-sourced some of the patterns I developed (like the Pydantic validation layer) for others to use. The biggest takeaway for me was that sometimes you have to be comfortable being the first one to figure something out—there’s no playbook, so you just have to experiment, iterate, and trust your instincts.\n\nIt was a steep learning curve, but it’s one of the things I love about working in AI: the field moves so fast that you’re *always* learning something new."
+  },
+  {
+    "role": "hr",
+    "message": "That’s such a fantastic example of learning agility—thank you for sharing it! What really resonates with me is how you didn’t just wait for best practices to emerge; you *created* them. That kind of proactive mindset is exactly what drives innovation, and it’s clear you thrive in environments where you’re pushing the boundaries of what’s possible.\n\nI also love how you open-sourced your work. It shows not only confidence in what you’ve built but also a desire to lift others up in the process. That’s a quality we deeply value here.\n\nYou know, as we’re wrapping up, I’d love to give you the space to share anything else you feel is important for us to know about you. Is there anything we haven’t covered yet that you’d like to highlight—whether it’s about your approach to work, your values, or what you’re looking for in your next role?"
+  },
+  {
+    "role": "candidate",
+    "message": "Thanks for that—I really appreciate the space to share. One thing I’d love to highlight is how much I value **building systems that actually *do* things**, not just systems that *respond*. At LojistikZeka, I saw firsthand how powerful it is when AI moves beyond chat interfaces and becomes an execution engine. That’s the kind of work that excites me: designing agents that can reason, plan, and act autonomously in complex environments.\n\nI’m also someone who thrives in **collaborative, fast-moving teams** where experimentation is encouraged. For example, during the Mistral hackathon, my team and I built \"LegalEagle\" in just 48 hours—a multi-agent system that negotiated SaaS contracts. It was chaotic, but the energy of iterating quickly and solving problems on the fly was incredible. I’d love to bring that same energy to Zephlen.\n\nAs for what I’m looking for next: I want to work somewhere that’s **pushing the boundaries of what autonomous agents can do**, not just incrementally improving existing tools. Zephlen’s focus on building the next generation of digital workers really resonates with me. I’m also excited about the opportunity to **shape the architecture** of a company from the ground up—something I’ve been craving after working in more established systems.\n\nAnd, of course, I’d love to work with a team that values **open-source contributions** and gives engineers the freedom to experiment. The compute budget for personal projects is a huge plus—I’ve got a backlog of agent ideas I’d love to prototype!\n\nThanks again for the great conversation. I’m really excited about the possibility of joining Zephlen!"
+  },
+  {
+    "role": "hr",
+    "message": "Thank you so much for sharing all of that—it’s been an absolute pleasure getting to know you better! Your passion for building autonomous systems that *do* things is truly inspiring, and it’s clear how much thought and intention you’ve put into your career journey. I can tell how excited you are about the work we’re doing at Zephlen, and I have no doubt that your energy and expertise would be a fantastic fit for our team.\n\nI think we’ve covered a lot of ground today, and I feel like I’ve gotten a great sense of what drives you, how you approach challenges, and what you’re looking for in your next role. I really appreciate the time you’ve taken to share your experiences and insights with me.\n\nWe’ll be in touch soon with next steps, but in the meantime, if you have any questions or anything else you’d like to share, don’t hesitate to reach out. Thanks again for a wonderful conversation, and I hope you have a fantastic day!"
+  }
+]

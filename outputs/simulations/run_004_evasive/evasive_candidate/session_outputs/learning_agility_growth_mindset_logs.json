@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Think about a time when a tool, framework, or project you were deeply invested in suddenly became obsolete or was overshadowed by something new. How did you react in the moment, and what steps did you take to adapt? Did you pivot, double down, or move on entirely?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "I’d love to explore how you approach learning and growth, especially when faced with unexpected changes. For example, think about a time when a tool, framework, or project you were deeply invested in suddenly became obsolete or was overshadowed by something new. How did you react in the moment, and what steps did you take to adapt? Did you pivot, double down, or move on entirely?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh man, that’s happened more times than I can count. I remember when LangChain was *the* thing everyone was using for agent workflows. We built our entire initial pipeline on it, but then we started hitting walls—like, the orchestration wasn’t deterministic enough, and debugging multi-step chains was a nightmare. At first, I was pretty frustrated. I’d spent months learning it, and now it felt like we were back to square one.\n\nBut instead of digging in my heels, I took a step back and asked, *\"What’s the actual problem we’re trying to solve?\"* Turns out, we needed more control over the agent’s reasoning loop. So I spent a weekend prototyping a custom orchestration engine in Python—just a simple state machine at first, but it let us define the exact flow we wanted. When I showed it to the team, they were skeptical at first, but after we ran some benchmarks and saw the task completion rate jump, it became the new standard. Sometimes you just gotta let go of the tools and focus on the outcome, you know?"
+            }
+        ]
+    }
+]

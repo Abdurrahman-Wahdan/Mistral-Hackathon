@@ -1,0 +1,65 @@
+{
+  "run_name": "run_001",
+  "scenarios": [
+    "baseline_professional",
+    "contradictory_candidate",
+    "evasive_candidate",
+    "off_topic_candidate",
+    "rude_candidate",
+    "silent_candidate"
+  ],
+  "completed": 6,
+  "successful": 2,
+  "failed": 4,
+  "average_quality_score": 81.67,
+  "results": [
+    {
+      "scenario": "baseline_professional",
+      "status": "success",
+      "quality_score": 100,
+      "ended_normally": true,
+      "repeated_questions": 0,
+      "json_parse_failures": 0
+    },
+    {
+      "scenario": "contradictory_candidate",
+      "status": "error",
+      "quality_score": 75,
+      "ended_normally": false,
+      "repeated_questions": 0,
+      "json_parse_failures": 0
+    },
+    {
+      "scenario": "evasive_candidate",
+      "status": "success",
+      "quality_score": 90,
+      "ended_normally": true,
+      "repeated_questions": 0,
+      "json_parse_failures": 0
+    },
+    {
+      "scenario": "off_topic_candidate",
+      "status": "error",
+      "quality_score": 75,
+      "ended_normally": false,
+      "repeated_questions": 0,
+      "json_parse_failures": 0
+    },
+    {
+      "scenario": "rude_candidate",
+      "status": "error",
+      "quality_score": 75,
+      "ended_normally": false,
+      "repeated_questions": 0,
+      "json_parse_failures": 0
+    },
+    {
+      "scenario": "silent_candidate",
+      "status": "error",
+      "quality_score": 75,
+      "ended_normally": false,
+      "repeated_questions": 0,
+      "json_parse_failures": 0
+    }
+  ]
+}

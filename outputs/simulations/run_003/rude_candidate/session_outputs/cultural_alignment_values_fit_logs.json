@@ -1,0 +1,23 @@
+[
+    {
+        "question": "At LojistikZeka, you architected an autonomous supply chain agent that saved ₺15M annually—a massive impact. But the CV doesn’t mention who *owned* the non-technical risks, like carrier pushback or legal concerns about AI-driven rerouting. Walk me through a time when you had to step outside your engineering role to unblock a project—whether it was negotiating with a reluctant stakeholder, drafting a process doc for operations teams, or even just convincing your manager to allocate resources. What was the situation, and how did you navigate the ‘this isn’t my job’ moment?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "You’ve accomplished some incredible things, like architecting the autonomous supply chain agent at LojistikZeka. That kind of impact often means stepping outside the traditional boundaries of an engineering role—whether it’s addressing non-technical risks, negotiating with stakeholders, or even just making sure the operations team is on board. \n\nTell me about a time when you had to step outside your comfort zone to unblock a project. Maybe it was negotiating with a reluctant stakeholder, drafting a process doc for a non-technical team, or convincing your manager to allocate resources. What was the situation, and how did you handle that ‘this isn’t my job’ moment?"
+            },
+            {
+                "role": "candidate",
+                "message": "*Leans back* Ugh, fine. The ops team refused to use the agent because \"it’s too complicated.\" Like, no—*they* were too lazy to learn a three-step workflow. \n\nSo I *made* it their job. Wrote a one-pager with screenshots, added a \"blame Alara\" escalation path, and told their manager: \"Your team’s slow approvals are costing us money. Here’s how to fix it.\" Used their own KPIs against them—suddenly, they cared. \n\nTook me two hours. Saved the company weeks of delays. And yeah, I *hated* every minute of it. But the agent shipped. So. Whatever works."
+            },
+            {
+                "role": "hr",
+                "message": "It sounds like you’re someone who doesn’t shy away from doing what’s necessary to get things done, even if it’s not technically part of your role. I’m curious—when you were putting together that one-pager or framing the issue in terms of their KPIs, did you ever feel like you were overstepping? Or was it more about proving that the solution was worth their time?"
+            },
+            {
+                "role": "candidate",
+                "message": "*Shrugs* Overstepping? Please. If I waited for people to do their jobs, nothing would ever get done. \n\nIt wasn’t about *proving* anything—it was about making it *easier* for them to say yes than to keep whining. Their KPIs were already in the system; I just connected the dots. If they’re too stubborn to see the obvious, that’s their problem. \n\nThe agent worked. The ops team stopped blocking it. End of story."
+            }
+        ]
+    }
+]

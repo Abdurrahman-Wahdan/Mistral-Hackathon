@@ -1,0 +1,38 @@
+{
+  "scenario": "baseline_professional",
+  "start_time_utc": "2026-02-28T19:17:05.552449+00:00",
+  "end_time_utc": "2026-02-28T19:21:34.983846+00:00",
+  "duration_seconds": 269.43,
+  "status": "success",
+  "error": "",
+  "metrics": {
+    "ended_normally": false,
+    "forced_termination": true,
+    "interviewer_turns": 10,
+    "candidate_turns": 10,
+    "tool_call_count": 11,
+    "tool_usage": {
+      "list_categories": 1,
+      "get_asked_questions": 3,
+      "read_questions": 3,
+      "log_qa": 4
+    },
+    "json_parse_failures": 0,
+    "categories_logged": 3,
+    "segments_logged": 4,
+    "questions_logged": 4,
+    "unique_questions": 3,
+    "repeated_questions": 1,
+    "category_breakdown": {
+      "learning_agility_growth_mindset": 2,
+      "core_behavioral_competencies": 1,
+      "cultural_alignment_values_fit": 1
+    },
+    "quality_score": 30,
+    "professionalism_issues": 0,
+    "technical_question_hits": 4,
+    "redirect_count": 1,
+    "needs_redirect": false,
+    "redirect_observed": true
+  }
+}

@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Can you share an experience where you had to collaborate with a team to achieve a goal, especially when there were differing opinions or challenges along the way?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "I’d love to shift gears slightly and talk about collaboration. In many roles, success isn’t just about individual contributions—it’s also about how well we work with others. Can you share an experience where you had to collaborate with a team to achieve a goal, especially when there were differing opinions or challenges along the way?"
+            },
+            {
+                "role": "candidate",
+                "message": "LegalEagle hackathon. Team split: 2 wanted full autonomy, I pushed for human-in-loop. Task: Build contract negotiator in 48 hours. Action: Compromised—auto-drafted redlines but flagged high-risk clauses for review. Result: Won \"Best Agentic Application.\" Teams still use the hybrid approach."
+            }
+        ]
+    }
+]

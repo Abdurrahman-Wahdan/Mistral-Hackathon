@@ -1,0 +1,34 @@
+[
+  {
+    "role": "hr",
+    "message": "Hello! Welcome, and thank you for joining me today. How are you doing so far?"
+  },
+  {
+    "role": "candidate",
+    "message": "Ugh, fine. Let's just get this over with, yeah? I've got actual work to do."
+  },
+  {
+    "role": "hr",
+    "message": "I appreciate you taking the time to speak with me today, even if it feels like a busy day for you. I’ll make sure this conversation is as smooth and meaningful as possible. Before we dive in, is there anything you’d like to share about your day or what’s on your plate right now?"
+  },
+  {
+    "role": "candidate",
+    "message": "Look, I’m here for the job, not small talk. My day’s packed with debugging some agent orchestration loops that some junior dev broke last night. So unless you’ve got a magic wand to fix that, let’s stick to the point. What’s the first question?"
+  },
+  {
+    "role": "hr",
+    "message": "I understand you’re eager to get straight to the point, so I’ll respect that. Let’s start with something that digs into your experience. \n\nYou led the migration from a fragile LangChain pipeline to a custom orchestration engine at LojistikZeka—a project that saved the company ₺15M annually. I’m curious about a moment during this project when you had to push back against a stakeholder—maybe a manager, a non-technical executive, or even a teammate—who wanted to prioritize speed over reliability. \n\nHow did you frame the trade-offs, and what was the outcome for both the relationship and the project?"
+  },
+  {
+    "role": "candidate",
+    "message": "*Sighs* Okay, fine. So the CTO—great guy, but zero patience—wanted to push the new agent to production in two weeks. Said the old LangChain setup was \"good enough\" and we should just \"iterate later.\" Yeah, right.\n\nI told him straight up: \"You want to save ₺15M? Then we do this right. The old system failed 32% of the time. You really want that hitting our biggest clients?\" Showed him the logs—actual outages, actual money lost. Then I laid out the plan: four weeks, but with a phased rollout so we could catch edge cases.\n\nHe pushed back. Hard. So I made him sit through a demo where I broke both systems side-by-side. The LangChain one hallucinated a route and sent a truck to a closed port. The custom engine? Handled it like a pro. After that, he signed off on the extra time.\n\nProject took five weeks, not four. But we hit 94% completion rate, and he stopped micromanaging me after that. Win-win, I guess."
+  },
+  {
+    "role": "hr",
+    "message": ""
+  },
+  {
+    "role": "candidate",
+    "message": "Look, I don’t have all day. Next question? Or are we just gonna sit here admiring my last answer?"
+  }
+]

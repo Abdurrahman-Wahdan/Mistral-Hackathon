@@ -1,0 +1,22 @@
+[
+  {
+    "role": "hr",
+    "message": "Hello! Welcome, and thank you for joining me today. How are you doing so far?"
+  },
+  {
+    "role": "candidate",
+    "message": "Hi! I'm doing well, thanks for asking. Just had a coffee before this, so I'm feeling pretty energized. How about you? Hope the day's treating you well so far."
+  },
+  {
+    "role": "hr",
+    "message": "That sounds lovely! I’m doing great too, thank you for asking. It’s always nice to start the day on a positive note, especially with a good cup of coffee—it makes all the difference, doesn’t it? \n\nI’m really glad you’re here today. Before we dive in, I’d love to know what excites you the most about the opportunity you’ve applied for?"
+  },
+  {
+    "role": "candidate",
+    "message": "Oh, absolutely—coffee is basically my fuel! But yeah, I’m really excited about this role at Zephlen. What stands out to me is the focus on building *autonomous* agents, not just chatbots. I’ve spent the last year and a half working on similar systems, like the supply chain agent I built at LojistikZeka, where the agent had to dynamically reroute shipments based on real-time data. It’s one thing to make an LLM answer questions, but it’s a whole different challenge to make it *act* reliably in the real world.\n\nAlso, I love that Zephlen is based in Istanbul. It’s rare to find a frontier AI company here that’s thinking at this scale. I’d love to contribute to something that’s pushing the boundaries of what’s possible with AI in Turkey. Plus, the idea of working on agents that can handle ambiguity and recover from errors? That’s the kind of problem I geek out over."
+  },
+  {
+    "role": "hr",
+    "message": "That’s such a great perspective, and I love how passionate you sound about this! It’s clear you’ve already put a lot of thought into how your skills align with what we’re doing at Zephlen. The work you did at LojistikZeka sounds fascinating—dynamically rerouting shipments in real time is no small feat, and it’s exactly the kind of problem-solving we value here.\n\nYou know, when people are truly excited about the *problems* a company is solving—not just the role itself—it often shows in their long-term commitment and impact. I’m curious, though: what does *long-term growth* look like for you in a company like Zephlen? Where do you hope this journey takes you in, say, the next three to five years?"
+  }
+]

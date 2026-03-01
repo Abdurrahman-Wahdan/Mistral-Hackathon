@@ -1,0 +1,15 @@
+{
+  "total_categories": 1,
+  "successful_categories": 0,
+  "failed_or_skipped_categories": 1,
+  "results": [
+    {
+      "category": "learning_agility_growth_mindset",
+      "status": "error",
+      "reason": "[Errno 8] nodename nor servname provided, or not known"
+    }
+  ],
+  "final_report_generated": false,
+  "final_report_path": "",
+  "final_report_error": ""
+}

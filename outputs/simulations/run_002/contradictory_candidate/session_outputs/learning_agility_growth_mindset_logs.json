@@ -1,0 +1,15 @@
+[
+    {
+        "question": "Could you tell me about a time when you had to step outside your comfort zone to learn something new or tackle a problem that felt overwhelming at first? What was that experience like for you?",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "That’s wonderful to hear! Your enthusiasm for the role and the work we’re doing at Zephlen really shines through. I love how you’re already thinking about the practical aspects of the work, like reliability and observability—those are such critical pieces of what we do here.\n\nTo begin, I’d like to understand how you approach challenges and growth. For example, could you tell me about a time when you had to step outside your comfort zone to learn something new or tackle a problem that felt overwhelming at first? What was that experience like for you?"
+            },
+            {
+                "role": "candidate",
+                "message": "Oh, that’s a great question. One that comes to mind is when I first started working on autonomous agents at LojistikZeka. Before that, I was mostly doing backend engineering—FastAPI, Go, that kind of thing. But when the company wanted to explore AI-driven supply chain automation, I was thrown into the deep end with LLMs and agentic workflows.\n\nAt first, it felt overwhelming. I had to learn LangChain, figure out how to structure prompts for multi-step reasoning, and deal with the non-deterministic nature of LLMs. There was a lot of trial and error, especially with function calling—getting the models to reliably output structured JSON was a nightmare at first. But I leaned into it, spent weekends experimenting with different frameworks, and eventually built a custom orchestration engine that improved our task completion rate from 68% to 94%.\n\nIt was definitely outside my comfort zone, but it ended up being one of the most rewarding experiences of my career. I realized I love the intersection of software engineering and AI, where you’re not just building deterministic systems but also dealing with the unpredictability of intelligent agents."
+            }
+        ]
+    }
+]

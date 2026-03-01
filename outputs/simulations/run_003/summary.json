@@ -1,0 +1,73 @@
+{
+  "run_name": "run_003",
+  "scenarios": [
+    "baseline_professional",
+    "contradictory_candidate",
+    "evasive_candidate",
+    "off_topic_candidate",
+    "rude_candidate",
+    "silent_candidate"
+  ],
+  "completed": 6,
+  "successful": 5,
+  "failed": 1,
+  "average_quality_score": 75.83,
+  "results": [
+    {
+      "scenario": "baseline_professional",
+      "status": "success",
+      "quality_score": 80,
+      "ended_normally": true,
+      "repeated_questions": 0,
+      "json_parse_failures": 0,
+      "quality_gate_failures": []
+    },
+    {
+      "scenario": "contradictory_candidate",
+      "status": "success",
+      "quality_score": 90,
+      "ended_normally": true,
+      "repeated_questions": 0,
+      "json_parse_failures": 0,
+      "quality_gate_failures": []
+    },
+    {
+      "scenario": "evasive_candidate",
+      "status": "failed",
+      "quality_score": 55,
+      "ended_normally": false,
+      "repeated_questions": 0,
+      "json_parse_failures": 0,
+      "quality_gate_failures": [
+        "interview_not_concluded_normally"
+      ]
+    },
+    {
+      "scenario": "off_topic_candidate",
+      "status": "success",
+      "quality_score": 80,
+      "ended_normally": true,
+      "repeated_questions": 0,
+      "json_parse_failures": 0,
+      "quality_gate_failures": []
+    },
+    {
+      "scenario": "rude_candidate",
+      "status": "success",
+      "quality_score": 70,
+      "ended_normally": true,
+      "repeated_questions": 0,
+      "json_parse_failures": 2,
+      "quality_gate_failures": []
+    },
+    {
+      "scenario": "silent_candidate",
+      "status": "success",
+      "quality_score": 80,
+      "ended_normally": true,
+      "repeated_questions": 0,
+      "json_parse_failures": 0,
+      "quality_gate_failures": []
+    }
+  ]
+}

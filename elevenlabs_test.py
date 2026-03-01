@@ -1,10 +1,12 @@
-import os
 import io
+import os
 import wave
 import pyaudio
 import numpy as np
+import asyncio
 from dotenv import load_dotenv
 from elevenlabs import ElevenLabs
+from hackathon.core.agents.interview_runtime import InterviewSessionManager
 
 load_dotenv()
 
@@ -20,20 +22,16 @@ SILENCE_TIMEOUT = 2.0  # seconds of silence before stopping recording
 CONFIRM_COUNT = 3  # consecutive loud chunks needed to confirm real speech
 PRE_BUFFER_SIZE = 20  # number of mic chunks to keep as pre-buffer (~1.3 seconds)
 
-# HR Agent text
-AUDIO_TEXT = "Merhaba, ben Furkan. Yazılım mühendisliği alanında 3 yıllık deneyime sahibim. Özellikle web geliştirme ve bulut bilişim konularında kendimi geliştirdim. Yeni teknolojileri öğrenmeye ve problem çözmeye odaklı çalışıyorum."
-
-
-def play_tts_with_interruption():
+def play_tts_with_interruption(text: str):
     """Play TTS audio. Returns (interrupted, pre_buffer).
     pre_buffer contains the mic data that triggered the interruption so first words aren't lost.
     """
     from collections import deque
-    print("HR Agent speaking...")
+    print(f"\nHR Agent speaking: {text}")
     audio_stream = client.text_to_speech.stream(
         voice_id="21m00Tcm4TlvDq8ikWAM",
         output_format="pcm_16000",
-        text=AUDIO_TEXT,
+        text=text,
         model_id="eleven_multilingual_v2"
     )
 
@@ -43,7 +41,7 @@ def play_tts_with_interruption():
                        input=True, frames_per_buffer=CHUNK_SIZE)
 
     interrupted = False
-    loops = 0
+    frames_played = 0
     loud_streak = 0  # consecutive loud readings
     pre_buffer = deque(maxlen=PRE_BUFFER_SIZE)  # rolling buffer of mic data
 
@@ -52,24 +50,48 @@ def play_tts_with_interruption():
             in_stream.read(in_stream.get_read_available(), exception_on_overflow=False)
 
         for chunk in audio_stream:
-            if chunk:
-                loops += 1
+            if not chunk: continue
+            
+            # Process the chunk in small pieces to keep the mic check frequent
+            chunk_ptr = 0
+            while chunk_ptr < len(chunk):
+                # Write a small piece of the current chunk to the speaker
+                write_size = min(len(chunk) - chunk_ptr, CHUNK_SIZE * 2)
+                out_stream.write(chunk[chunk_ptr:chunk_ptr + write_size])
+                chunk_ptr += write_size
+                frames_played += write_size // 2
+                
+                # Immediately check the mic after every small write
                 available = in_stream.get_read_available()
                 if available > 0:
                     data = in_stream.read(available, exception_on_overflow=False)
-                    if loops > 10:  # longer warmup to let speaker settle
+                    # Use a very short warmup (0.2s) as the settle time is fast
+                    if frames_played > int(SAMPLE_RATE * 0.2):
                         audio_data = np.frombuffer(data, dtype=np.int16)
-                        volume = np.max(np.abs(audio_data)) if len(audio_data) > 0 else 0
-                        if volume > THRESHOLD:
-                            pre_buffer.append(data)  # only buffer user speech, not echo
-                            loud_streak += 1
-                            if loud_streak >= CONFIRM_COUNT:
-                                print("\nUser speech detected! Stopping playback...")
-                                interrupted = True
-                                break
-                        else:
-                            loud_streak = 0
-                out_stream.write(chunk)
+                        
+                        # Check volume in small windows for accuracy
+                        for i in range(0, len(audio_data), CHUNK_SIZE):
+                            sub_chunk = audio_data[i:i+CHUNK_SIZE]
+                            if len(sub_chunk) == 0: continue
+                            
+                            volume = np.max(np.abs(sub_chunk))
+                            if volume > THRESHOLD:
+                                pre_buffer.append(sub_chunk.tobytes())
+                                loud_streak += 1
+                                if loud_streak >= CONFIRM_COUNT:
+                                    print("\n[INTERRUPT] User speech detected! Breaking...")
+                                    interrupted = True
+                                    break
+                            else:
+                                if loud_streak > 0:
+                                    loud_streak = 0
+                
+                if interrupted:
+                    break
+            
+            if interrupted:
+                break
+
     except KeyboardInterrupt:
         interrupted = True
     finally:
@@ -145,22 +167,63 @@ def transcribe_audio(wav_buffer):
     return result.text
 
 
-def main():
-    # Step 1: HR Agent speaks
-    interrupted, pre_buffer = play_tts_with_interruption()
+async def main_async():
+    if not API_KEY:
+        print("ELEVENLABS_API_KEY eksik.")
+        return
 
-    if interrupted:
-        # Step 2: Record user speech (with pre-buffer so first words aren't lost)
-        wav_buffer = record_user_speech(pre_buffer=pre_buffer)
+    manager = InterviewSessionManager()
+    session_id = os.getenv("VOICE_SESSION_ID", "voice_session")
+    job_title = os.getenv("VOICE_JOB_TITLE", "").strip() or None
 
-        # Step 3: Transcribe
-        transcript = transcribe_audio(wav_buffer)
-        print(f"\n{'='*50}")
-        print(f"User said: {transcript}")
-        print(f"{'='*50}")
-    else:
-        print("HR Agent finished speaking (no interruption).")
+    state, ai_text = await manager.create_session(session_id=session_id, job_title=job_title)
+    print(f"\nSession started: {state.session_id}")
+    print(f"Session logs: {state.outputs_dir}")
+
+    try:
+        while True:
+            interrupted, pre_buffer = play_tts_with_interruption(ai_text)
+
+            # Record user response (whether they interrupted or waited)
+            wav_buffer = record_user_speech(pre_buffer=pre_buffer if interrupted else None)
+            transcript = transcribe_audio(wav_buffer)
+
+            print(f"\n{'='*50}")
+            print(f"User said: {transcript}")
+            print(f"{'='*50}")
+
+            candidate_text = (transcript or "").strip()
+            if not candidate_text:
+                print("Sesiniz anlaşılamadı. Tekrar dinleniyor...")
+                ai_text = "Dediğinizi tam anlayamadım, tekrar edebilir misiniz?"
+                continue
+
+            if candidate_text.lower() in {"quit", "exit", "stop"}:
+                print("\nKullanıcı isteğiyle görüşme sonlandırıldı.")
+                break
+
+            print("\nInterview runtime düşünüyor...")
+            result = await manager.process_turn(state.session_id, candidate_text)
+            ai_text = str(result.get("assistant_message", "")).strip()
+            if not ai_text:
+                ai_text = "Teşekkür ederim. Biraz daha detay verebilir misiniz?"
+
+            if bool(result.get("end_interview", False)):
+                # Speak final assistant message before exiting.
+                play_tts_with_interruption(ai_text)
+                print("\nGörüşme doğal şekilde tamamlandı.")
+                break
+    except KeyboardInterrupt:
+        print("\nGörüşme sonlandırıldı.")
+    finally:
+        try:
+            summary = await manager.finish_session(state.session_id, force=True)
+            reports_dir = summary.get("reports_dir")
+            if reports_dir:
+                print(f"Report directory: {reports_dir}")
+        except Exception as exc:
+            print(f"Rapor üretimi başarısız: {exc}")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main_async())
