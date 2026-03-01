@@ -15,7 +15,7 @@ Default bind: `0.0.0.0:8081` (configurable from `.env`):
 
 ### 2) Point the UI to the API
 
-In `ui/.env.local`:
+In `ui/local`:
 
 ```bash
 INTERVIEW_AGENT_API_URL=http://localhost:8081

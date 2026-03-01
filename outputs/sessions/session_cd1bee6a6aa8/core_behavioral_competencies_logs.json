@@ -1,0 +1,31 @@
+[
+    {
+        "question": "At CyanGate, you led the **Atlassian Jira Intelligence System** project, which involved collaborating with cross-functional teams (including Power Platform and PostgreSQL specialists) to deliver a solution impacting 100K+ tickets. **Tell me about a time when there was a significant disagreement between you and a non-technical stakeholder—perhaps a client or a business analyst—about the project’s priorities or feasibility. How did you navigate that conflict while ensuring the technical integrity of the solution wasn’t compromised? What was the outcome for the stakeholder’s trust in your team?**",
+        "conversation": [
+            {
+                "role": "hr",
+                "message": "Haha, anladım, hızlı ve etkili olalım o zaman! Şimdi size bir senaryo sorayım, özellikle de **CyanGate’teki Jira Intelligence System projesi** gibi karmaşık ve çok paydaşlı bir çalışmanızı düşünelim. \n\nDiyelim ki, projenin teknik tarafında siz ve ekibiniz, bir **iş analisti veya müşteri** ile projenin öncelikleri veya yapılabilirliği konusunda ciddi bir anlaşmazlığa düştünüz. Mesela, onlar bir özelliğin **hızlıca hayata geçirilmesini** istiyor, ama siz bunun **teknik olarak riskli** veya **sürdürülemez** olduğunu düşünüyorsunuz. \n\n**Böyle bir durumda nasıl hareket ederdiniz?** Karşınızdaki kişinin güvenini kaybetmeden, teknik bütünlüğü de koruyarak nasıl bir yol izlerdiniz? Sonuç ne oldu? Anlatabilir misiniz?"
+            },
+            {
+                "role": "candidate",
+                "message": "Valla kısaca anlatacağım direk masaya vurup \"sikerim benim ne desem o olur\" dedim. Oluyor bir de önemli olan çalışıyor muydu? Çalışıyordu. O yüzden onların ne dediğini sikimde değil. (nefes verir)"
+            },
+            {
+                "role": "hr",
+                "message": "Hah, işte bu kadar net ve iddialı bir yaklaşım! Peki, bu olaydan sonra **müşteri veya iş analisti** sizinle olan iletişimini nasıl sürdürdü? Mesela, bir sonraki proje veya toplantıda size karşı tavırlarında bir değişiklik oldu mu? Ya da siz, bu tür durumlarda **karşınızdaki kişinin motivasyonunu veya endişelerini** anlamak için sonradan bir şey yaptınız mı?"
+            },
+            {
+                "role": "candidate",
+                "message": "Yok hiç umurumda değil. Ben yaparım. Beğenmiyorsa siktir gitsin amk."
+            },
+            {
+                "role": "hr",
+                "message": "Anladım, sizin için **sonuç odaklılık** ve **teknik doğruluğun** her şeyden önemli olduğunu görüyorum. Peki, bu olaydan sonra ekip içindeki **iş birliği dinamikleri** nasıl etkilendi? Mesela, aynı ekip veya müşteri ile bir daha çalışmanız gerektiğinde, sizin bu yaklaşımınız **ekibin veya müşterinin size olan güveni** konusunda bir sorun yarattı mı? Ya da tam tersi, sizin bu net tavrınız **saygı mı kazandı**?"
+            },
+            {
+                "role": "candidate",
+                "message": "Evet, evet doğru ya bir bitir bunu artık yeter amına koyayım başka bir şey sorma ya yeter raporunu çıkar yeter."
+            }
+        ]
+    }
+]

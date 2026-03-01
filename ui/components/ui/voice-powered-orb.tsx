@@ -12,6 +12,10 @@ interface VoicePoweredOrbProps {
   maxRotationSpeed?: number;
   maxHoverIntensity?: number;
   onVoiceDetected?: (detected: boolean) => void;
+  /** 0–1 value driven by a parent component (e.g. the interview recorder).
+   *  When provided and enableVoiceControl is false, the orb will react to this
+   *  value instead of its own microphone. */
+  externalVoiceLevel?: number;
 }
 
 export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
@@ -22,6 +26,7 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
   maxRotationSpeed = 1.2,
   maxHoverIntensity = 0.8,
   onVoiceDetected,
+  externalVoiceLevel,
 }) => {
   const ctnDom = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -30,6 +35,10 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
   const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const animationFrameRef = useRef<number>(0);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  // Store the latest externalVoiceLevel in a ref so the render loop can read
+  // it without re-creating the effect.
+  const externalVoiceLevelRef = useRef(externalVoiceLevel ?? 0);
+  externalVoiceLevelRef.current = externalVoiceLevel ?? 0;
 
   const vert = /* glsl */ `
     precision highp float;
@@ -393,6 +402,7 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
 
         // Handle voice input
         if (enableVoiceControl && isMicrophoneInitialized) {
+          // ── Mode 1: own microphone ──
           voiceLevel = analyzeAudio();
 
           // Notify parent component about voice detection
@@ -412,11 +422,30 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
           program.uniforms.hover.value = Math.min(voiceLevel * 2.0, 1.0);
           program.uniforms.hoverIntensity.value = Math.min(voiceLevel * maxHoverIntensity * 0.8, maxHoverIntensity);
         } else {
-          // Keep effects at 0 when not using voice control
-          program.uniforms.hover.value = 0;
-          program.uniforms.hoverIntensity.value = 0;
+          // ── Mode 2: no own mic — use externalVoiceLevel or idle animation ──
+          const extLevel = externalVoiceLevelRef.current;
+
+          if (extLevel > 0.02) {
+            // External voice level is being fed in — react to it.
+            voiceLevel += (extLevel - voiceLevel) * 0.15; // smooth
+            const voiceRotationSpeed = baseRotationSpeed + (voiceLevel * maxRotationSpeed * 2.0);
+            currentRot += dt * voiceRotationSpeed;
+            program.uniforms.hover.value = Math.min(voiceLevel * 2.0, 1.0);
+            program.uniforms.hoverIntensity.value = Math.min(
+              voiceLevel * maxHoverIntensity * 0.8,
+              maxHoverIntensity
+            );
+          } else {
+            // Idle animation — gentle continuous rotation + subtle pulse
+            voiceLevel *= 0.92; // decay
+            const idlePulse = 0.12 + 0.08 * Math.sin(t * 0.002);
+            currentRot += dt * (baseRotationSpeed * 0.5);
+            program.uniforms.hover.value = idlePulse;
+            program.uniforms.hoverIntensity.value = idlePulse * maxHoverIntensity * 0.3;
+          }
+
           if (onVoiceDetected) {
-            onVoiceDetected(false);
+            onVoiceDetected(voiceLevel > 0.1);
           }
         }
 
@@ -460,7 +489,7 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
         container.removeChild(container.firstChild);
       }
       return () => {
-        window.removeEventListener("resize", () => {});
+        window.removeEventListener("resize", () => { });
       };
     }
   }, [
@@ -503,7 +532,7 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
         className
       )}
     >
-     
+
     </div>
   );
 };

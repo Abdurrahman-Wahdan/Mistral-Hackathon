@@ -16,21 +16,57 @@ type RingState = "connecting" | "active" | "failed";
 
 const START_MAX_ATTEMPTS = 4;
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
-const SILENCE_STOP_MS = 2000;
-const VOLUME_THRESHOLD_INT16 = 2800;
-const VOICE_CONFIRM_COUNT = 3;
-const NO_SPEECH_TIMEOUT_MS = 8000;
-const MAX_RECORDING_MS = 20000;
-const MAX_POST_SPEECH_MS = 12000;
-const TTS_FETCH_TIMEOUT_MS = 45_000;
 
-function computeTtsGuardMs(text: string): number {
-  const byLength = text.length * 120;
-  return Math.min(75_000, Math.max(15_000, byLength));
+// ── Voice Activity Detection (VAD) tuning ──
+// Silence after speech ends before we stop recording & send to STT.
+// Keep short so the agent feels snappy, but long enough not to clip mid-pause.
+const SILENCE_STOP_MS = 1400;
+// Volume threshold — set so TTS echo through speakers doesn't trigger false
+// positives (echo cancellation handles most of it).
+const VOLUME_THRESHOLD_INT16 = 1100;
+// Consecutive loud frames needed to confirm real speech.
+const VOICE_CONFIRM_COUNT = 2;
+// Wait for user to start speaking before sending whatever we have.
+const NO_SPEECH_TIMEOUT_MS = 5000;
+// Hard cap on any single recording window.
+const MAX_RECORDING_MS = 30_000;
+// After user starts speaking, max time before we force-stop.
+const MAX_POST_SPEECH_MS = 25_000;
+
+// ── TTS timeouts ──
+const TTS_FETCH_TIMEOUT_MS = 45_000;
+const TTS_BLOB_TIMEOUT_MS = 60_000;
+
+function computeTtsNetworkGuardMs(text: string): number {
+  const byLength = text.length * 90;
+  return Math.min(60_000, Math.max(12_000, byLength));
+}
+
+function computeTtsPlaybackGuardMs(text: string, audioBytes: number): number {
+  const byBytesMs = audioBytes > 0 ? Math.round((audioBytes / 16_000) * 1000) + 3_000 : 0;
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const byWordsMs = words * 520 + 3_500;
+  const estimate = Math.max(byBytesMs, byWordsMs);
+  return Math.min(120_000, Math.max(12_000, estimate));
 }
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    promise
+      .then((value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      });
+  });
 }
 
 function normalizeErrorMessage(fallback: string, details: unknown): string {
@@ -66,6 +102,8 @@ export default function VoiceChatScreen({
   const [statusText, setStatusText] = useState("Initializing interview...");
   const [error, setError] = useState<string | null>(null);
   const [endInterview, setEndInterview] = useState(false);
+  // Voice level 0-1 fed to the orb so it visually reacts.
+  const [orbVoiceLevel, setOrbVoiceLevel] = useState(0);
 
   const sessionIdRef = useRef<string | null>(null);
   const closedRef = useRef(false);
@@ -74,6 +112,9 @@ export default function VoiceChatScreen({
   const sendingTurnRef = useRef(false);
   const assistantSpeakingRef = useRef(false);
   const endInterviewRef = useRef(false);
+  // New: track whether we are in the process of starting listening to avoid
+  // duplicate startListeningCapture calls racing each other.
+  const startingListenRef = useRef(false);
 
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentAudioUrlRef = useRef<string | null>(null);
@@ -93,9 +134,12 @@ export default function VoiceChatScreen({
   const loudStreakRef = useRef(0);
   const lastSpeechAtRef = useRef(0);
   const listenStartedAtRef = useRef(0);
+  const emptyTranscriptStreakRef = useRef(0);
 
-  const speakAssistantRef = useRef<(text: string) => void>(() => {});
-  const finishInterviewRef = useRef<() => void>(() => {});
+  const speakAssistantRef = useRef<(text: string) => void>(() => { });
+  const finishInterviewRef = useRef<() => void>(() => { });
+  // New: a ref to call startListeningCapture from deeper callbacks safely.
+  const startListeningCaptureRef = useRef<() => void>(() => { });
 
   const clearMonitorRaf = useCallback(() => {
     if (monitorRafRef.current !== null) {
@@ -124,7 +168,7 @@ export default function VoiceChatScreen({
     analyserRef.current = null;
 
     if (audioContextRef.current) {
-      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current.close().catch(() => { });
       audioContextRef.current = null;
     }
 
@@ -135,6 +179,7 @@ export default function VoiceChatScreen({
 
     mediaRecorderRef.current = null;
     setIsListening(false);
+    startingListenRef.current = false;
   }, [clearHardStopTimer, clearMonitorRaf]);
 
   const closePlayback = useCallback(() => {
@@ -159,6 +204,11 @@ export default function VoiceChatScreen({
       const recorder = mediaRecorderRef.current;
       if (recorder && recorder.state !== "inactive") {
         try {
+          recorder.requestData();
+        } catch {
+          // no-op
+        }
+        try {
           recorder.stop();
         } catch {
           cleanupMicResources();
@@ -175,12 +225,33 @@ export default function VoiceChatScreen({
     closePlayback();
   }, [closePlayback, stopListeningCapture]);
 
+  // ── Helper: safely begin listening again ──
+  // Checks all preconditions and avoids duplicate calls.
+  const tryStartListening = useCallback(() => {
+    if (closedRef.current) return;
+    if (endInterviewRef.current) {
+      // Interview ended — move to finish flow instead of listening.
+      finishInterviewRef.current();
+      return;
+    }
+    if (assistantSpeakingRef.current || sendingTurnRef.current) return;
+    // Delegate to the ref so we get the latest version of startListeningCapture.
+    startListeningCaptureRef.current();
+  }, []);
+
   const sendTurn = useCallback(async (candidateText: string) => {
     const sid = sessionIdRef.current;
     const content = (candidateText || "").trim();
-    if (!content) return;
+    if (!content) {
+      // Nothing to send — go back to listening.
+      sendingTurnRef.current = false;
+      tryStartListening();
+      return;
+    }
     if (!sid) {
       setError("Session is not ready yet. Please wait a moment and try again.");
+      sendingTurnRef.current = false;
+      tryStartListening();
       return;
     }
 
@@ -208,23 +279,33 @@ export default function VoiceChatScreen({
       const shouldEnd = Boolean(body?.end_interview);
       endInterviewRef.current = shouldEnd;
       setEndInterview(shouldEnd);
+
+      // Important: clear sendingTurnRef BEFORE handing off to speakAssistant,
+      // because speakAssistant's handoffToUser checks this flag.
+      sendingTurnRef.current = false;
+
       speakAssistantRef.current((body?.assistant_message ?? "").trim());
     } catch (err) {
       console.error("[VoiceInterview] Turn failed:", err);
       setError(err instanceof Error ? err.message : "Turn failed.");
       sendingTurnRef.current = false;
+      // On error, go back to listening so the user isn't stuck.
+      tryStartListening();
     }
-  }, []);
+  }, [tryStartListening]);
 
   const processRecordedAudio = useCallback(
     async (audioBlob: Blob) => {
       if (closedRef.current || endInterviewRef.current || assistantSpeakingRef.current) {
+        sendingTurnRef.current = false;
         return;
       }
 
       if (!audioBlob.size) {
-        setStatusText("Listening...");
+        setStatusText("No audio captured. Listening again...");
         setError(null);
+        sendingTurnRef.current = false;
+        tryStartListening();
         return;
       }
 
@@ -233,7 +314,12 @@ export default function VoiceChatScreen({
 
       try {
         const formData = new FormData();
-        formData.append("audio", audioBlob, "speech.webm");
+        const fileName = audioBlob.type.includes("mp4")
+          ? "speech.m4a"
+          : audioBlob.type.includes("ogg")
+            ? "speech.ogg"
+            : "speech.webm";
+        formData.append("audio", audioBlob, fileName);
 
         const sttRes = await fetch("/api/stt", {
           method: "POST",
@@ -255,35 +341,66 @@ export default function VoiceChatScreen({
 
         const transcript = (sttBody?.transcript ?? "").trim();
         if (!transcript) {
-          setStatusText("Did not catch that. Listening again...");
+          emptyTranscriptStreakRef.current += 1;
+          if (emptyTranscriptStreakRef.current >= 2) {
+            setError("No speech detected from mic input. Check browser mic permission and selected input device.");
+          }
+          setStatusText("Did not catch that. Please speak louder and closer to the mic.");
+          sendingTurnRef.current = false;
+          tryStartListening();
           return;
         }
+        emptyTranscriptStreakRef.current = 0;
+        setError(null);
 
+        // sendTurn will handle resetting sendingTurnRef and starting listening.
         await sendTurn(transcript);
       } catch (err) {
         console.error("[VoiceInterview] STT failed:", err);
         setError(err instanceof Error ? err.message : "STT failed.");
+        sendingTurnRef.current = false;
+        tryStartListening();
       }
     },
-    [sendTurn]
+    [sendTurn, tryStartListening]
   );
 
   const startListeningCapture = useCallback(async () => {
-    if (closedRef.current || endInterviewRef.current || assistantSpeakingRef.current || sendingTurnRef.current) {
+    // Guard: don't start if any blocker is active.
+    if (closedRef.current || assistantSpeakingRef.current || sendingTurnRef.current) {
       return;
     }
+    if (endInterviewRef.current) {
+      finishInterviewRef.current();
+      return;
+    }
+    // Prevent duplicate starts.
+    if (startingListenRef.current) return;
+    startingListenRef.current = true;
 
+    // Clean up any leftover recording (without processing).
     stopListeningCapture(false);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
+          // Enable echo cancellation so that TTS playback through speakers
+          // doesn't get picked up as user speech.
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
+          channelCount: 1,
+          sampleRate: 16000,
         },
         video: false,
       });
+
+      // Re-check guards after the async getUserMedia call.
+      if (closedRef.current || assistantSpeakingRef.current || endInterviewRef.current) {
+        stream.getTracks().forEach((t) => t.stop());
+        startingListenRef.current = false;
+        return;
+      }
 
       micStreamRef.current = stream;
 
@@ -310,6 +427,8 @@ export default function VoiceChatScreen({
       recorder.onerror = () => {
         setError("Microphone recording failed.");
         cleanupMicResources();
+        // Try to recover by starting listening again after a brief delay.
+        window.setTimeout(() => tryStartListening(), 500);
       };
 
       recorder.onstop = () => {
@@ -319,24 +438,24 @@ export default function VoiceChatScreen({
         cleanupMicResources();
 
         if (!shouldProcess || closedRef.current) {
-          if (!closedRef.current && !assistantSpeakingRef.current && !endInterviewRef.current) {
-            void startListeningCapture();
+          // Not processing — just restart listening if appropriate.
+          if (!closedRef.current && !assistantSpeakingRef.current && !endInterviewRef.current && !sendingTurnRef.current) {
+            tryStartListening();
           }
           return;
         }
 
-        void processRecordedAudio(blob).finally(() => {
-          sendingTurnRef.current = false;
-          if (!closedRef.current && !assistantSpeakingRef.current && !endInterviewRef.current) {
-            void startListeningCapture();
-          }
-        });
+        // Mark that we are processing (sendingTurnRef) so overlapping
+        // startListeningCapture calls won't fire.
+        sendingTurnRef.current = true;
+
+        void processRecordedAudio(blob);
       };
 
       const audioContext = new AudioContext();
       audioContextRef.current = audioContext;
       if (audioContext.state === "suspended") {
-        await audioContext.resume().catch(() => {});
+        await audioContext.resume().catch(() => { });
       }
       const source = audioContext.createMediaStreamSource(stream);
       sourceNodeRef.current = source;
@@ -354,6 +473,14 @@ export default function VoiceChatScreen({
           return;
         }
 
+        // If the assistant started speaking while we were monitoring, stop
+        // immediately without processing.
+        if (assistantSpeakingRef.current || closedRef.current) {
+          setOrbVoiceLevel(0);
+          stopListeningCapture(false);
+          return;
+        }
+
         activeAnalyser.getByteTimeDomainData(waveform);
         const now = performance.now();
         let peak = 0;
@@ -362,6 +489,10 @@ export default function VoiceChatScreen({
           if (dist > peak) peak = dist;
         }
         const peakInt16 = Math.round((peak / 128) * 32767);
+
+        // Feed the orb visualizer (normalized 0-1).
+        const normalizedLevel = Math.min(peakInt16 / 8000, 1);
+        setOrbVoiceLevel(normalizedLevel);
 
         if (peakInt16 >= VOLUME_THRESHOLD_INT16) {
           loudStreakRef.current += 1;
@@ -376,24 +507,30 @@ export default function VoiceChatScreen({
           loudStreakRef.current = 0;
         }
 
+        // User stopped speaking — silence detected.
         if (speechStartedRef.current && now - lastSpeechAtRef.current >= SILENCE_STOP_MS) {
+          setOrbVoiceLevel(0);
           stopListeningCapture(true);
           return;
         }
 
+        // Hard cap: user has been speaking too long.
         if (speechStartedRef.current && now - speechStartedAtRef.current >= MAX_POST_SPEECH_MS) {
+          setOrbVoiceLevel(0);
           stopListeningCapture(true);
           return;
         }
 
+        // No speech at all for a long time — send whatever we have.
         if (!speechStartedRef.current && now - listenStartedAtRef.current >= NO_SPEECH_TIMEOUT_MS) {
-          setStatusText("No speech detected. Listening again...");
-          stopListeningCapture(false);
+          setStatusText("Low signal detected. Sending sample...");
+          stopListeningCapture(true);
           return;
         }
 
+        // Overall hard cap.
         if (now - listenStartedAtRef.current >= MAX_RECORDING_MS) {
-          stopListeningCapture(speechStartedRef.current);
+          stopListeningCapture(true);
           return;
         }
 
@@ -402,12 +539,13 @@ export default function VoiceChatScreen({
 
       recorder.start(200);
       hardStopTimerRef.current = window.setTimeout(() => {
-        stopListeningCapture(speechStartedRef.current);
+        stopListeningCapture(true);
       }, MAX_RECORDING_MS + 1000);
       setRingState("active");
       setStatusText("Listening...");
       setError(null);
       setIsListening(true);
+      startingListenRef.current = false;
       monitorRafRef.current = window.requestAnimationFrame(monitor);
     } catch (err) {
       console.error("[VoiceInterview] Mic start failed:", err);
@@ -415,18 +553,29 @@ export default function VoiceChatScreen({
       setError("Could not access microphone.");
       setStatusText("Microphone unavailable.");
       cleanupMicResources();
+      startingListenRef.current = false;
     }
-  }, [cleanupMicResources, processRecordedAudio, stopListeningCapture]);
+  }, [cleanupMicResources, processRecordedAudio, stopListeningCapture, tryStartListening]);
+
+  // Keep the ref always pointing at the latest version.
+  useEffect(() => {
+    startListeningCaptureRef.current = () => {
+      void startListeningCapture();
+    };
+  }, [startListeningCapture]);
 
   const speakAssistant = useCallback(
     async (text: string) => {
       assistantSpeakingRef.current = true;
+      // Stop any ongoing recording — we are about to play audio.
       stopListeningCapture(false);
       setStatusText("Interviewer is speaking...");
+      // Give the orb a moderate pulse while TTS plays.
+      setOrbVoiceLevel(0.45);
 
       const normalized = (text || "").trim();
       const speakSeq = speakRequestSeqRef.current;
-      const ttsGuardMs = computeTtsGuardMs(normalized);
+      const networkGuardMs = computeTtsNetworkGuardMs(normalized);
       let settled = false;
       let guardTimer: number | null = null;
 
@@ -439,18 +588,31 @@ export default function VoiceChatScreen({
         }
         assistantSpeakingRef.current = false;
         sendingTurnRef.current = false;
+        setOrbVoiceLevel(0);
+
         if (endInterviewRef.current) {
           finishInterviewRef.current();
           return;
         }
-        void startListeningCapture();
+        if (closedRef.current) return;
+
+        setStatusText("Listening...");
+        // Use tryStartListening which has all the guards.
+        tryStartListening();
       };
 
-      guardTimer = window.setTimeout(() => {
-        // Hard fallback so the UI never gets stuck at "Interviewer is speaking...".
-        closePlayback();
-        handoffToUser();
-      }, ttsGuardMs);
+      const armGuard = (timeoutMs: number) => {
+        if (guardTimer !== null) {
+          window.clearTimeout(guardTimer);
+          guardTimer = null;
+        }
+        guardTimer = window.setTimeout(() => {
+          closePlayback();
+          handoffToUser();
+        }, timeoutMs);
+      };
+
+      armGuard(networkGuardMs);
 
       if (!normalized) {
         handoffToUser();
@@ -460,21 +622,33 @@ export default function VoiceChatScreen({
       try {
         const controller = new AbortController();
         const ttsTimeout = window.setTimeout(() => controller.abort(), TTS_FETCH_TIMEOUT_MS);
-        const response = await fetch("/api/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: normalized }),
-          signal: controller.signal,
-        });
-        window.clearTimeout(ttsTimeout);
+        const response = await (async () => {
+          try {
+            return await fetch("/api/tts", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: normalized }),
+              signal: controller.signal,
+            });
+          } finally {
+            window.clearTimeout(ttsTimeout);
+          }
+        })();
 
         if (speakSeq !== speakRequestSeqRef.current) return;
         if (!response.ok) {
           throw new Error(`TTS failed (${response.status})`);
         }
 
-        const blob = await response.blob();
+        const blob = await withTimeout(
+          response.blob(),
+          Math.min(TTS_BLOB_TIMEOUT_MS, networkGuardMs + 8_000),
+          "TTS stream timed out. Returning to listening mode."
+        );
         if (speakSeq !== speakRequestSeqRef.current) return;
+
+        const playbackGuardMs = computeTtsPlaybackGuardMs(normalized, blob.size);
+        armGuard(playbackGuardMs);
 
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
@@ -505,7 +679,7 @@ export default function VoiceChatScreen({
         handoffToUser();
       }
     },
-    [closePlayback, startListeningCapture, stopListeningCapture]
+    [closePlayback, stopListeningCapture, tryStartListening]
   );
 
   useEffect(() => {
@@ -656,7 +830,9 @@ export default function VoiceChatScreen({
         className="relative h-56 w-56 sm:h-72 sm:w-72"
       >
         <VoicePoweredOrb
-          enableVoiceControl={true}
+          // Disable orb-level microphone capture to avoid conflicts with interview recorder.
+          enableVoiceControl={false}
+          externalVoiceLevel={orbVoiceLevel}
           className="overflow-hidden rounded-full"
           onVoiceDetected={setVoiceDetected}
         />
