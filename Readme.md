@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/company-logo-black.png" alt="Zephlen AI Logo" width="220" />
+  <img src="assets/white-logo.png" alt="Zephlen AI Logo" width="220" />
 
   <h1>AI Interview Simulator: An Agentic, Avatar-Driven Mock Interview Platform</h1>
 
