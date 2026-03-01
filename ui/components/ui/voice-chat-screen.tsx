@@ -47,7 +47,7 @@ function computeTtsPlaybackGuardMs(text: string, audioBytes: number): number {
   const words = text.split(/\s+/).filter(Boolean).length;
   const byWordsMs = words * 520 + 3_500;
   const estimate = Math.max(byBytesMs, byWordsMs);
-  return Math.min(120_000, Math.max(12_000, estimate));
+  return Math.min(45_000, Math.max(10_000, estimate));
 }
 
 function wait(ms: number): Promise<void> {
@@ -135,6 +135,7 @@ export default function VoiceChatScreen({
   const lastSpeechAtRef = useRef(0);
   const listenStartedAtRef = useRef(0);
   const emptyTranscriptStreakRef = useRef(0);
+  const isListeningRef = useRef(false);
 
   const speakAssistantRef = useRef<(text: string) => void>(() => { });
   const finishInterviewRef = useRef<() => void>(() => { });
@@ -147,6 +148,10 @@ export default function VoiceChatScreen({
       monitorRafRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    isListeningRef.current = isListening;
+  }, [isListening]);
 
   const clearHardStopTimer = useCallback(() => {
     if (hardStopTimerRef.current !== null) {
@@ -578,6 +583,9 @@ export default function VoiceChatScreen({
       const networkGuardMs = computeTtsNetworkGuardMs(normalized);
       let settled = false;
       let guardTimer: number | null = null;
+      let playbackWatchTimer: number | null = null;
+      let listeningKickTimer1: number | null = null;
+      let listeningKickTimer2: number | null = null;
 
       const handoffToUser = () => {
         if (settled) return;
@@ -586,8 +594,21 @@ export default function VoiceChatScreen({
           window.clearTimeout(guardTimer);
           guardTimer = null;
         }
+        if (playbackWatchTimer !== null) {
+          window.clearTimeout(playbackWatchTimer);
+          playbackWatchTimer = null;
+        }
+        if (listeningKickTimer1 !== null) {
+          window.clearTimeout(listeningKickTimer1);
+          listeningKickTimer1 = null;
+        }
+        if (listeningKickTimer2 !== null) {
+          window.clearTimeout(listeningKickTimer2);
+          listeningKickTimer2 = null;
+        }
         assistantSpeakingRef.current = false;
         sendingTurnRef.current = false;
+        startingListenRef.current = false;
         setOrbVoiceLevel(0);
 
         if (endInterviewRef.current) {
@@ -599,6 +620,22 @@ export default function VoiceChatScreen({
         setStatusText("Listening...");
         // Use tryStartListening which has all the guards.
         tryStartListening();
+        // Safety net: if listening did not start due race/permission edge, force retry.
+        listeningKickTimer1 = window.setTimeout(() => {
+          if (settled) return;
+          if (closedRef.current || endInterviewRef.current || assistantSpeakingRef.current) return;
+          if (!isListeningRef.current) {
+            startListeningCaptureRef.current();
+          }
+        }, 900);
+        listeningKickTimer2 = window.setTimeout(() => {
+          if (settled) return;
+          if (closedRef.current || endInterviewRef.current || assistantSpeakingRef.current) return;
+          if (!isListeningRef.current) {
+            setStatusText("Listening...");
+            startListeningCaptureRef.current();
+          }
+        }, 2400);
       };
 
       const armGuard = (timeoutMs: number) => {
@@ -610,6 +647,52 @@ export default function VoiceChatScreen({
           closePlayback();
           handoffToUser();
         }, timeoutMs);
+      };
+
+      const startPlaybackWatchdog = (audioEl: HTMLAudioElement) => {
+        let lastTime = -1;
+        let stagnantMs = 0;
+        const tick = () => {
+          if (settled || speakSeq !== speakRequestSeqRef.current) return;
+          const duration = Number.isFinite(audioEl.duration) ? audioEl.duration : 0;
+          const current = audioEl.currentTime;
+
+          if (audioEl.ended) {
+            closePlayback();
+            handoffToUser();
+            return;
+          }
+          if (duration > 0 && current >= duration - 0.1) {
+            closePlayback();
+            handoffToUser();
+            return;
+          }
+          // Some browsers pause at the end without reliably firing `ended`.
+          if (current > 0.15 && audioEl.paused && !audioEl.seeking) {
+            closePlayback();
+            handoffToUser();
+            return;
+          }
+          // Detect playback stalls and recover.
+          if (!audioEl.paused) {
+            if (Math.abs(current - lastTime) < 0.001) {
+              stagnantMs += 250;
+            } else {
+              stagnantMs = 0;
+            }
+          } else {
+            stagnantMs = 0;
+          }
+          lastTime = current;
+          if (current > 0.2 && stagnantMs >= 1500) {
+            closePlayback();
+            handoffToUser();
+            return;
+          }
+
+          playbackWatchTimer = window.setTimeout(tick, 250);
+        };
+        playbackWatchTimer = window.setTimeout(tick, 250);
       };
 
       armGuard(networkGuardMs);
@@ -661,6 +744,13 @@ export default function VoiceChatScreen({
           handoffToUser();
         };
 
+        audio.onpause = () => {
+          if (speakSeq !== speakRequestSeqRef.current) return;
+          if (audio.currentTime <= 0.15) return;
+          closePlayback();
+          handoffToUser();
+        };
+
         audio.onerror = () => {
           if (speakSeq !== speakRequestSeqRef.current) return;
           closePlayback();
@@ -670,6 +760,11 @@ export default function VoiceChatScreen({
         const playPromise = audio.play();
         if (playPromise) {
           await playPromise;
+        }
+        startPlaybackWatchdog(audio);
+        if (audio.ended) {
+          closePlayback();
+          handoffToUser();
         }
       } catch (err) {
         if (speakSeq !== speakRequestSeqRef.current) return;
