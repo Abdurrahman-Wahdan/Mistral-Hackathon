@@ -1,57 +1,302 @@
-# HireAI — Autonomous AI Interview Platform
+<div align="center">
+  <img src="assets/company-logo-black.png" alt="Zephlen AI Logo" width="220" />
 
-> Upload a CV. Select a role. Speak naturally. Receive a structured performance report.
-> Powered entirely by Mistral AI, LangGraph, and ElevenLabs.
+  <h1>AI Interview Simulator: An Agentic, Avatar-Driven Mock Interview Platform</h1>
 
----
+  <p>
+    Zephlen's AI Interview Simulator is an autonomous, agentic interview-training platform built for Mistral Worldwide Hacks.
+  </p>
+  <p>
+    It combines Mistral-powered multi-agent reasoning with ElevenLabs voice interaction to deliver realistic, adaptive mock interviews and structured performance feedback.
+  </p>
 
-## What We Built
+  <p>
+    <a href="https://www.youtube.com/@ZephlenAI"><img src="https://img.shields.io/badge/YouTube-ZephlenAI-red?logo=youtube&logoColor=white" alt="YouTube" /></a>
+    <a href="https://www.linkedin.com/company/zephlen/"><img src="https://img.shields.io/badge/LinkedIn-Zephlen-0A66C2?logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+    <a href="https://www.instagram.com/zephlen.ai/"><img src="https://img.shields.io/badge/Instagram-zephlen.ai-E4405F?logo=instagram&logoColor=white" alt="Instagram" /></a>
+    <img src="https://img.shields.io/badge/License-Apache%202.0-2ea44f" alt="License Apache 2.0" />
+    <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+" />
+    <img src="https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white" alt="Node 20+" />
+  </p>
 
-HireAI is a full-stack, voice-first AI platform that automates the complete HR interview lifecycle. It doesn't just ask pre-written questions — it reads your CV, understands the job description, generates a tailored question bank across six psychological dimensions, conducts a live voice conversation, logs every answer, and synthesizes a structured evaluation report. Everything from ingestion to final report is driven by Mistral models orchestrated through a multi-agent LangGraph pipeline.
+  <p>
+    <a href="#demo"><strong>Demo</strong></a> ·
+    <a href="#getting-started"><strong>Quickstart</strong></a> ·
+    <a href="#how-the-system-works"><strong>Architecture</strong></a> ·
+    <a href="#api-reference"><strong>API</strong></a> ·
+    <a href="#contributors"><strong>Contributors</strong></a>
+  </p>
+</div>
 
----
+Last reviewed: March 2, 2026
 
-## Use Cases
+## Table of Contents
 
-```mermaid
-flowchart LR
-    A[Job Seeker] -->|Upload CV + Select Role| B[HireAI Platform]
-    B -->|Tailored Voice Interview| C[Live AI Interviewer]
-    C -->|Structured Evaluation| D[Performance Report]
+- [Demo](#demo)
+- [Zephlen Channels](#zephlen-channels)
+- [Screenshots (Live App)](#screenshots-live-app)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Verify Setup](#verify-setup)
+- [How the System Works](#how-the-system-works)
+- [Architecture Deep Dive](#architecture-deep-dive)
+- [Environment Variables](#environment-variables)
+- [API Reference](#api-reference)
+- [API Conventions and Error Handling](#api-conventions-and-error-handling)
+- [Available Commands](#available-commands)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+- [Repository Layout](#repository-layout)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contributors](#contributors)
 
-    E[HR Team] -->|Run Simulations| F[Scenario Engine]
-    F -->|Agent vs Agent| G[Quality Metrics + Monitor]
+## Demo
 
-    subgraph Dimensions
-        H[Cultural Fit]
-        I[Behavioral Competencies]
-        J[Motivation & Trajectory]
-        K[Learning Agility]
-        L[Emotional Intelligence]
-        M[Risk & Integrity]
-    end
+- YouTube demo: https://youtu.be/47VHrI7td7A?si=Id51xJcEdnSDo4Ml
 
-    B --> Dimensions
-    Dimensions --> C
+## Zephlen Channels
+
+- Instagram: https://www.instagram.com/zephlen.ai/
+- YouTube: https://www.youtube.com/@ZephlenAI
+- LinkedIn: https://www.linkedin.com/company/zephlen/
+
+## Screenshots (Live App)
+
+<table>
+  <tr>
+    <td><strong>Landing</strong><br/><img src="assets/main-screen.png" alt="Landing Screen" width="100%"/></td>
+    <td><strong>Jobs</strong><br/><img src="assets/jobs-screen.png" alt="Jobs Screen" width="100%"/></td>
+  </tr>
+  <tr>
+    <td><strong>Job Details</strong><br/><img src="assets/job-exmple.png" alt="Job Example" width="100%"/></td>
+    <td><strong>Upload CV</strong><br/><img src="assets/upload-pdf.png" alt="Upload CV" width="100%"/></td>
+  </tr>
+  <tr>
+    <td><strong>CV Uploaded</strong><br/><img src="assets/uploaded-pdf.png" alt="Uploaded CV" width="100%"/></td>
+    <td><strong>Live Avatar Interview</strong><br/><img src="assets/avatar.png" alt="Avatar Interview" width="100%"/></td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Performance Dashboard</strong><br/><img src="assets/dashbored.png" alt="Dashboard" width="100%"/></td>
+  </tr>
+</table>
+
+## Key Features
+
+- Multi-agent question generation across six HR dimensions (parallel fan-out/fan-in).
+- Adaptive, tool-augmented interviewer agent that avoids repeated questions.
+- Voice interview loop with STT (speech-to-text), TTS (text-to-speech), and animated avatar output.
+- Session-scoped outputs for interview logs, category analysis, and final report synthesis.
+- Post-interview dashboard with category scoring and improvement recommendations.
+- Simulation scripts for automated interviewer quality monitoring.
+
+## Tech Stack
+
+- **Backend API**: FastAPI, Uvicorn, Pydantic
+- **LLM Orchestration**: LangGraph, LangChain
+- **LLM Provider**: Mistral AI API
+- **Voice Layer**: ElevenLabs STT/TTS
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Framer Motion
+- **Utilities**: PyMuPDF (`fitz`) for CV text extraction, `httpx` for provider calls
+
+## Prerequisites
+
+- Python 3.11+ (3.13 tested)
+- Node.js 20+
+- npm 10+
+- Mistral API key
+- ElevenLabs API key
+- Microphone access in browser for voice interview flow
+
+Optional but useful:
+
+- `pytest` for test execution
+- Qdrant running locally/remotely if you use Qdrant-specific smoke tests
+
+## Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone <your-repo-url>
+cd Mistral-Hackathon
 ```
 
----
+### 2. Backend Setup
 
-## AI Architecture
+#### macOS/Linux
 
-The platform is built around three sequential AI stages, each powered by Mistral models through LangChain and orchestrated by LangGraph.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
 
-### Stage 1 — Parallel Question Generation (LangGraph Fan-Out)
+Update root `.env` with your real values:
 
-When a CV is uploaded, six specialized agents are spawned **concurrently** in a LangGraph `StateGraph`. Each agent receives the candidate's CV, the job description, and the company culture document, and independently generates three targeted questions for its domain. Results are merged back into a shared state via an `operator.ior` reducer — true fan-out/fan-in parallelism.
+```env
+MISTRAL_API_KEY=your_mistral_key
+ELEVENLABS_API_KEY=your_elevenlabs_key
+ELEVENLABS_VOICE_ID=your_voice_id
+INTERVIEW_API_HOST=0.0.0.0
+INTERVIEW_API_PORT=8081
+```
+
+Run backend:
+
+```bash
+python -m hackathon.api.server
+```
+
+#### Windows (PowerShell)
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env
+```
+
+Update root `.env` with your real values:
+
+```powershell
+@"
+MISTRAL_API_KEY=your_mistral_key
+ELEVENLABS_API_KEY=your_elevenlabs_key
+ELEVENLABS_VOICE_ID=your_voice_id
+INTERVIEW_API_HOST=0.0.0.0
+INTERVIEW_API_PORT=8081
+"@ | Set-Content .env
+```
+
+Run backend:
+
+```powershell
+python -m hackathon.api.server
+```
+
+### 3. Frontend Setup
+
+Open a second terminal:
+
+#### macOS/Linux
+
+```bash
+cd ui
+npm install
+printf "INTERVIEW_AGENT_API_URL=http://localhost:8081\n" > .env.local
+npm run dev
+```
+
+#### Windows (PowerShell)
+
+```powershell
+cd ui
+npm install
+"INTERVIEW_AGENT_API_URL=http://localhost:8081" | Set-Content .env.local
+npm run dev
+```
+
+### 4. Open the App
+
+- Frontend: `http://localhost:3000`
+- Backend health endpoint: `http://localhost:8081/health`
+
+## Verify Setup
+
+### Backend health check
+
+```bash
+curl http://localhost:8081/health
+```
+
+Expected output:
+
+```json
+{"status":"ok"}
+```
+
+### Frontend functional check
+
+1. Open `http://localhost:3000`
+2. Select a job role
+3. Upload a CV
+4. Confirm the app progresses into analysis/interview flow
+
+### Expected output artifacts
+
+After running an interview, expect generated files under:
+
+- `outputs/sessions/<session_id>/...`
+- `outputs/sessions/<session_id>/reports/...`
+
+## How the System Works
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as Next.js UI
+    participant API as FastAPI
+    participant Graph as LangGraph Agents
+    participant Mistral as Mistral API
+    participant ElevenLabs
+
+    User->>UI: Select role + upload CV
+    UI->>API: POST /v1/prepare-session
+    API->>Graph: Parallel question generation
+    Graph->>Mistral: 6 concurrent LLM calls
+    Mistral-->>Graph: Category question sets
+    Graph-->>API: Merged question bank
+    API-->>UI: session_id ready
+
+    User->>UI: Start interview
+    UI->>API: POST /v1/interview/sessions
+    API-->>UI: Opening prompt
+
+    loop Multi-turn interview
+        User->>UI: Speak
+        UI->>API: POST /v1/stt
+        API->>ElevenLabs: Transcription
+        ElevenLabs-->>API: Transcript
+        API-->>UI: Transcript
+        UI->>API: POST /v1/interview/sessions/{id}/turn
+        API->>Mistral: Tool-augmented reasoning
+        Mistral-->>API: Next interviewer message
+        API-->>UI: assistant_message
+        UI->>API: POST /v1/tts
+        API->>ElevenLabs: Speech synthesis
+        ElevenLabs-->>API: MP3 stream
+        API-->>UI: Audio stream
+    end
+
+    UI->>API: POST /v1/interview/sessions/{id}/finish
+    API->>Mistral: Parallel analysis + final synthesis
+    API-->>UI: Structured review payload
+```
+
+## Architecture Deep Dive
+
+### 1. Multi-Agent Question Generation
+
+The system runs six domain-specific agents in parallel:
+
+- Cultural Alignment
+- Behavioral Competencies
+- Motivation & Career Trajectory
+- Learning Agility
+- Interpersonal & Emotional Intelligence
+- Risk & Integrity
 
 ```mermaid
 flowchart TD
-    START([CV + JD + Culture]) --> A[Cultural Alignment Agent]
+    START([CV + Job Description + Culture]) --> A[Cultural Alignment Agent]
     START --> B[Behavioral Competencies Agent]
-    START --> C[Motivation & Trajectory Agent]
+    START --> C[Motivation & Career Trajectory Agent]
     START --> D[Learning Agility Agent]
-    START --> E[Emotional Intelligence Agent]
+    START --> E[Interpersonal & Emotional Intelligence Agent]
     START --> F[Risk & Integrity Agent]
 
     A --> MERGE[(Question Bank)]
@@ -60,175 +305,257 @@ flowchart TD
     D --> MERGE
     E --> MERGE
     F --> MERGE
-
-    MERGE --> G[session/question_bank.json]
 ```
 
-Each agent is a purpose-built Mistral instance with a domain-specific system prompt. Output is normalized, JSON-validated, and persisted to a session-scoped directory before the interview begins.
+### 2. Interview Runtime Agent
 
-### Stage 2 — Tool-Augmented Interview Agent
+The interviewer agent runs as a tool-augmented LLM loop. It can:
 
-The live interviewer is a Mistral model bound to five custom LangChain tools:
+- Read CV/JD/context sources
+- Access generated category questions
+- Track asked questions
+- Log Q&A segments
+- Decide when interview coverage is sufficient to finish
 
-| Tool | Purpose |
+### 3. Reporting Pipeline
+
+After interview completion:
+
+1. Category-level analyses run concurrently.
+2. A final synthesis composes an aggregated report.
+3. Review payload is returned to frontend for dashboard rendering.
+
+### 4. Voice Layer
+
+Current UI flow uses HTTP endpoints for voice (`/v1/stt`, `/v1/tts`).
+
+- `/v1/stt/realtime` WebSocket endpoint exists in backend.
+- It is optional and not required by the current UI path.
+
+## Environment Variables
+
+The backend loads environment variables from root `.env` via `pydantic-settings`.
+
+### Required
+
+| Variable | Description |
 |---|---|
-| `read_document` | Reads the candidate CV, JD, or culture file |
-| `list_categories` | Lists available question category files |
-| `read_questions` | Fetches questions from a given category |
-| `get_asked_questions` | Returns all questions already asked (prevents repetition) |
-| `log_qa` | Persists the full Q&A conversation segment to disk |
+| `MISTRAL_API_KEY` | API key for all Mistral model operations |
+| `ELEVENLABS_API_KEY` | API key for STT and TTS |
 
-The agent autonomously decides which questions to ask, follows up on candidate answers, detects evasion, and enforces a minimum coverage gate — it cannot conclude the interview until at least three distinct questions have been logged across different categories.
+### Recommended
 
-### Stage 3 — Concurrent Analysis & Report Synthesis
+| Variable | Default | Description |
+|---|---|---|
+| `ELEVENLABS_VOICE_ID` | `OYTbf65OHHFELVut7v2H` | Voice profile for synthesized interviewer audio |
+| `INTERVIEW_API_HOST` | `0.0.0.0` | Backend bind host |
+| `INTERVIEW_API_PORT` | `8081` | Backend bind port |
+| `INTERVIEW_API_CORS_ORIGINS` | `*` | Allowed CORS origins (comma-separated for multiple) |
+| `LOG_LEVEL` | `INFO` | Backend log verbosity |
+| `ENVIRONMENT` | `development` | Runtime environment label |
 
-After the interview, each Q&A log file is analyzed in parallel using `asyncio.gather` and a configurable concurrency semaphore. Each category produces an independent markdown analysis. A final synthesis pass aggregates all six reports into a unified candidate evaluation document.
+### Optional advanced settings
 
----
-
-## Full Request Flow — UI to Final Report
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Next.js UI
-    participant FastAPI Backend
-    participant LangGraph Agents
-    participant Mistral AI
-    participant ElevenLabs
-
-    User->>Next.js UI: Select role + Upload CV
-    Next.js UI->>FastAPI Backend: POST /v1/prepare-session (CV PDF)
-    FastAPI Backend->>FastAPI Backend: Extract text via PyMuPDF
-    FastAPI Backend->>LangGraph Agents: Run 6 agents in parallel
-    LangGraph Agents->>Mistral AI: 6 concurrent LLM calls
-    Mistral AI-->>LangGraph Agents: Domain-specific questions
-    LangGraph Agents-->>FastAPI Backend: Merged question bank
-    FastAPI Backend-->>Next.js UI: { session_id }
-
-    Note over Next.js UI: Analyzing screen → Ready
-
-    User->>Next.js UI: Start Interview
-    Next.js UI->>FastAPI Backend: POST /v1/interview/sessions
-    FastAPI Backend-->>Next.js UI: Opening message
-
-    loop Each Interview Turn
-        User->>Next.js UI: Speaks (microphone)
-        Next.js UI->>ElevenLabs: PCM audio via WebSocket (scribe_v2_realtime)
-        ElevenLabs-->>Next.js UI: Transcript (VAD-committed)
-        Next.js UI->>FastAPI Backend: POST /v1/interview/sessions/{id}/turn
-        FastAPI Backend->>Mistral AI: Agent + tools reasoning loop
-        Mistral AI-->>FastAPI Backend: Next question / follow-up
-        FastAPI Backend-->>Next.js UI: assistant_message
-        Next.js UI->>ElevenLabs: POST /v1/tts (text → MP3 stream)
-        ElevenLabs-->>Next.js UI: Audio stream
-        Next.js UI->>User: Avatar speaks response
-    end
-
-    User->>Next.js UI: Interview ends
-    Next.js UI->>FastAPI Backend: POST /v1/interview/sessions/{id}/finish
-    FastAPI Backend->>Mistral AI: 6 concurrent category analyses
-    Mistral AI-->>FastAPI Backend: Per-category markdown reports
-    FastAPI Backend->>Mistral AI: Final synthesis pass
-    Mistral AI-->>FastAPI Backend: final_interview_report.md
-    FastAPI Backend-->>Next.js UI: Structured review payload
-    Next.js UI->>User: Full performance report
-```
-
----
-
-## Tech Stack
-
-### AI & Orchestration
-- **Mistral AI** — All LLM inference (question generation, interview conduct, analysis, synthesis). Strictly Mistral-family models enforced at the factory layer.
-- **LangGraph** — Stateful multi-agent orchestration. Fan-out parallel execution for question generation, state merging via `operator.ior`.
-- **LangChain** — Tool binding, message formatting, retry logic with exponential backoff.
-
-### Voice Pipeline
-- **ElevenLabs Scribe v2 Realtime** — Low-latency streaming Speech-to-Text via WebSocket with VAD (Voice Activity Detection) and configurable silence threshold.
-- **ElevenLabs Scribe v1** — Batch STT fallback for uploaded audio.
-- **ElevenLabs TTS (eleven_multilingual_v2)** — Streaming text-to-speech, MP3 at 44.1 kHz/128kbps, played through an animated talking avatar.
-- **Echo Filtering** — Custom `SequenceMatcher`-based echo guard prevents TTS audio from being re-ingested by the STT pipeline. Barge-in detection interrupts playback when the user speaks.
-
-### Backend
-- **FastAPI** — Async HTTP API with WebSocket support.
-- **PyMuPDF (fitz)** — PDF text extraction for CV ingestion.
-- **asyncio / Semaphore** — Controlled concurrency for parallel report generation.
-- **Pydantic + pydantic-settings** — Request validation and typed configuration.
-
-### Frontend
-- **Next.js 15** (App Router) — Server-side routing and API proxy layer.
-- **TypeScript** — End-to-end type safety.
-- **Framer Motion** — Screen transition animations and talking avatar states.
-- **TailwindCSS** — Utility-first styling.
-- **Web Audio API** — Raw PCM capture, Int16 volume gating, VAD implemented in-browser.
-
-### Infrastructure
-- **Qdrant** — Vector store (available for semantic retrieval extensions).
-- **sentence-transformers** — Embedding pipeline.
-- **Uvicorn** — ASGI server.
-
----
-
-## Key AI Design Decisions
-
-**Why parallel agents for question generation?**
-Each psychological dimension requires a different reasoning lens. Running them sequentially forces unnecessary serialization and leaks framing from one domain into another. Parallel execution with independent system prompts guarantees domain purity and cuts preparation time by ~6×.
-
-**Why tool-calling for the interviewer instead of a fixed script?**
-A scripted interviewer can't adapt. The tool-calling agent reads the candidate's actual CV at runtime, selects questions that are genuinely relevant to their background, avoids repetition by querying its own logs, and follows up on evasive or incomplete answers. The structured JSON output contract (`message_to_candidate` + `end_interview`) gives the frontend a clean integration surface without hallucination leakage.
-
-**Why a two-pass reporting architecture?**
-Category-level analysis preserves the nuance of each dimension — behavioral competencies require different evaluation criteria than risk assessment. The final synthesis pass then reasons holistically across all six reports, producing a coherent narrative rather than a concatenation of scores.
-
-**Why ElevenLabs VAD over client-side silence detection?**
-Server-side VAD via `scribe_v2_realtime` with `CommitStrategy.VAD` and a 450ms silence threshold produces dramatically cleaner transcription boundaries compared to client-side amplitude heuristics. The echo guard (both string containment and Levenshtein ratio) handles the edge case where TTS audio bleeds into the microphone during playback.
-
----
-
-## Simulation & Testing
-
-The platform ships with an autonomous agent-vs-agent simulation engine. A dedicated candidate LLM (with configurable behavioral scenarios) is paired against the interviewer agent, producing full transcripts, quality scores, and monitor logs without any human involvement.
-
-Built-in scenarios include: cooperative, rude, evasive, off-topic, silent, and contradictory candidates. The quality scorer penalizes repeated questions, unprofessional language, technical drift, and early termination — providing a continuous regression harness for interviewer agent improvements.
-
----
-
-## Quickstart
-
-```bash
-# Backend
-pip install -r requirements.txt
-python -m hackathon.api.server        # binds to 0.0.0.0:8081
-
-# Frontend
-cd ui
-echo "INTERVIEW_AGENT_API_URL=http://localhost:8081" > .env.local
-npm install && npm run dev
-```
-
-Required environment variables:
-```
-MISTRAL_API_KEY=...
-ELEVENLABS_API_KEY=...
-ELEVENLABS_VOICE_ID=...
-```
-
----
+| Variable | Default | Purpose |
+|---|---|---|
+| `QDRANT_API_URL` / `QDRANT_URL` | `http://localhost:6333` | Qdrant endpoint |
+| `QDRANT_API_KEY` | `""` | Qdrant auth key |
+| `QDRANT_COLLECTION` | `company_info` | Collection name |
+| `HR_ANALYSIS_CONCURRENCY` | `4` | Parallelism for report generation |
+| `LLM_MAX_RETRIES` | `6` | Retry budget for LLM calls |
+| `LLM_RETRY_BASE_DELAY_SECONDS` | `1.0` | Retry base delay |
+| `LLM_RETRY_MAX_DELAY_SECONDS` | `20.0` | Retry max delay |
 
 ## API Reference
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/v1/prepare-session` | Upload CV PDF, generate question bank, return session_id |
-| `POST` | `/v1/interview/sessions` | Initialize interview session |
-| `POST` | `/v1/interview/sessions/{id}/turn` | Submit candidate message, receive agent response |
-| `POST` | `/v1/interview/sessions/{id}/finish` | End interview and trigger report generation |
-| `GET` | `/v1/interview/sessions/{id}/report` | Fetch final evaluation report |
-| `POST` | `/v1/stt` | Batch speech-to-text (file upload) |
-| `POST` | `/v1/tts` | Text-to-speech (streaming MP3) |
-| `WS` | `/v1/stt/realtime` | Real-time STT WebSocket with echo filtering |
+| `GET` | `/health` | Backend health check |
+| `POST` | `/v1/prepare-session` | Upload CV, generate question bank, return `session_id` |
+| `POST` | `/v1/interview/sessions` | Start interview session |
+| `GET` | `/v1/interview/sessions/{id}` | Session metadata/status |
+| `POST` | `/v1/interview/sessions/{id}/turn` | Submit candidate turn and get assistant reply |
+| `POST` | `/v1/interview/sessions/{id}/finish` | Finish interview and trigger report generation |
+| `GET` | `/v1/interview/sessions/{id}/report` | Fetch review payload |
+| `POST` | `/v1/stt` | Speech-to-text for uploaded audio |
+| `POST` | `/v1/tts` | Text-to-speech streaming response |
+| `WS` | `/v1/stt/realtime` | Optional realtime STT WebSocket endpoint |
+
+## API Conventions and Error Handling
+
+- Endpoints are versioned under `/v1/...`.
+- Non-file routes are JSON-based.
+- Session-related not-found errors return `404` with `session_not_found`.
+- Provider/configuration issues may return `503` (for example missing API key).
+- Operation failures typically return `500` with operation-specific detail strings like:
+  - `turn_failed`
+  - `finish_failed`
+  - `report_failed`
+
+## Available Commands
+
+### Backend commands
+
+| Command | Purpose |
+|---|---|
+| `python -m hackathon.api.server` | Run FastAPI backend |
+| `python hackathon/core/agents/conduct_interview.py` | Run terminal interview mode |
+| `python hackathon/core/agents/simulate_interview.py` | Run simulation scenarios |
+| `python hackathon/core/agents/monitor_simulations.py` | Summarize simulation monitor output |
+| `python hackathon/tests/test_mistral_factory.py` | Mistral model/factory smoke test |
+| `python hackathon/tests/test_qdrant_connection.py` | Qdrant connectivity smoke test |
+| `python sync_requirements.py --output /tmp/requirements.synced.txt` | Safely preview dependency sync |
+
+### Frontend commands (`ui/`)
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start local development server |
+| `npm run build` | Build production bundle |
+| `npm run start` | Start production Next.js server |
+| `npm run lint` | Run ESLint checks |
+
+## Testing
+
+### Quick smoke checks
+
+```bash
+# Backend health
+curl http://localhost:8081/health
+
+# Frontend lint/build
+cd ui
+npm run lint
+npm run build
+```
+
+### Python test utilities
+
+```bash
+# Mistral factory smoke test
+python hackathon/tests/test_mistral_factory.py
+
+# Qdrant connection smoke test (requires qdrant-client and configured service)
+python hackathon/tests/test_qdrant_connection.py
+```
+
+### Pytest suite
+
+If `pytest` is installed in your environment:
+
+```bash
+python -m pytest hackathon/tests
+```
+
+## Troubleshooting
+
+### Backend starts but UI cannot connect
+
+- Confirm `ui/.env.local` contains `INTERVIEW_AGENT_API_URL=http://localhost:8081`.
+- Confirm backend health: `curl http://localhost:8081/health`.
+
+### STT/TTS failures
+
+- Verify `ELEVENLABS_API_KEY` is configured.
+- Verify outbound network access to ElevenLabs APIs.
+
+### LLM call failures
+
+- Verify `MISTRAL_API_KEY` is configured.
+- Check retry settings (`LLM_MAX_RETRIES` and delay vars).
+
+### CV extraction issues
+
+- Ensure uploaded file is a readable PDF/text source.
+- If extraction/import issues occur around `fitz`, install `pymupdf` in your environment.
+
+### Microphone not working
+
+- Grant browser microphone permissions.
+- Verify correct input device at OS/browser level.
+
+### Windows PowerShell activation blocked
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+## Repository Layout
+
+```text
+.
+├── hackathon/                  # Backend API, agents, prompts, tests
+│   ├── api/
+│   ├── config/
+│   ├── core/
+│   │   ├── agents/
+│   │   ├── prompts/
+│   │   └── tools/
+│   ├── llm/
+│   └── tests/
+├── shared/                     # Shared utility modules
+├── ui/                         # Next.js frontend
+├── data/                       # Sample CV/JD/culture data
+├── outputs/                    # Generated runtime artifacts (git-ignored)
+├── assets/                     # README screenshots
+├── sync_requirements.py        # Requirements sync helper
+├── requirements.txt
+└── LICENSE
+```
+
+## Contributing
+
+1. Branch from `main`.
+2. Keep changes scoped and commit messages clear.
+3. Verify backend + frontend run locally.
+4. Include screenshots for UI changes and testing notes in your PR.
+
+## License
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
+
+## Contributors
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/ismail-furkan-atasoy.jpeg" alt="İsmail Furkan Atasoy" width="120" height="120" style="border-radius:50%; object-fit:cover;" /><br/><br/>
+      <strong><a href="https://www.linkedin.com/in/ifurkanatasoy/">İsmail Furkan Atasoy</a></strong><br/>
+      <sub>Contributor</sub><br/><br/>
+      <a href="https://www.linkedin.com/in/ifurkanatasoy/">
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?logo=linkedin&logoColor=white" alt="İsmail Furkan Atasoy LinkedIn" />
+      </a>
+      <a href="https://github.com/ifurkanatasoy">
+        <img src="https://img.shields.io/badge/GitHub-ifurkanatasoy-181717?logo=github&logoColor=white" alt="İsmail Furkan Atasoy GitHub" />
+      </a>
+      <a href="https://www.instagram.com/ifurkanatasoy/">
+        <img src="https://img.shields.io/badge/Instagram-@ifurkanatasoy-E4405F?logo=instagram&logoColor=white" alt="İsmail Furkan Atasoy Instagram" />
+      </a>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/abdelrahman-wahdan.jpeg" alt="Abdelrahman Wahdan" width="120" height="120" style="border-radius:50%; object-fit:cover;" /><br/><br/>
+      <strong><a href="https://www.linkedin.com/in/abdelrahman-wahdan">Abdelrahman Wahdan</a></strong><br/>
+      <sub>Contributor</sub><br/><br/>
+      <a href="https://www.linkedin.com/in/abdelrahman-wahdan">
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?logo=linkedin&logoColor=white" alt="Abdelrahman Wahdan LinkedIn" />
+      </a>
+      <a href="https://github.com/Abdurrahman-Wahdan">
+        <img src="https://img.shields.io/badge/GitHub-Abdurrahman--Wahdan-181717?logo=github&logoColor=white" alt="Abdelrahman Wahdan GitHub" />
+      </a>
+      <a href="https://www.instagram.com/boodywahdan_/">
+        <img src="https://img.shields.io/badge/Instagram-@boodywahdan_-E4405F?logo=instagram&logoColor=white" alt="Abdelrahman Wahdan Instagram" />
+      </a>
+    </td>
+  </tr>
+</table>
 
 ---
 
-*Built for the Mistral AI Hackathon.*
+<div align="center">
+  <table>
+    <tr>
+      <td valign="middle"><sub>Built for Mistral Worldwide Hacks</sub></td>
+      <td valign="middle">&nbsp;&nbsp;<img src="assets/mistral-worldwide-hackathons.svg" alt="Mistral Worldwide Hacks" width="96" /></td>
+    </tr>
+  </table>
+</div>
